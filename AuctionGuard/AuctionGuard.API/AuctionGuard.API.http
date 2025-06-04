@@ -1,0 +1,6 @@
+@AuctionGuard.API_HostAddress = http://localhost:5083
+
+GET {{AuctionGuard.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
