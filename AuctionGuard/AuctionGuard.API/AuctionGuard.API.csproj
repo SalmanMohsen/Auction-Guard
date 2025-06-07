@@ -10,4 +10,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AuctionGuard.Application\AuctionGuard.Application.csproj" />
+    <ProjectReference Include="..\AuctionGuard.Domain\AuctionGuard.Domain.csproj" />
+    <ProjectReference Include="..\AuctionGuard.Infrastructure\AuctionGuard.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
