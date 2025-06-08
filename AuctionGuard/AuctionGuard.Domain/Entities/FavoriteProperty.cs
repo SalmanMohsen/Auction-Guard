@@ -35,10 +35,6 @@ namespace AuctionGuard.Domain.Entities
         #endregion
 
         #region Navigation Properties
-        /// <summary>
-        /// Navigation property for the user.
-        /// </summary>
-        public virtual User User { get; set; }
 
         /// <summary>
         /// Navigation property for the property.

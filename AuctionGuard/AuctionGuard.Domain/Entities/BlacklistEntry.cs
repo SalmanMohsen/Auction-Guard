@@ -26,13 +26,6 @@ namespace AuctionGuard.Domain.Entities
         public DateTime BlacklistStartDate { get; set; } = DateTime.UtcNow;
         #endregion
 
-        #region Navigation Properties
-        /// <summary>
-        /// Navigation property for the user.
-        /// </summary>
-        public virtual User User { get; set; }
-        #endregion
-
         #region Properties
         /// <summary>
         /// Gets or sets the reason for blacklisting.

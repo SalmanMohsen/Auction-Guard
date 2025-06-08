@@ -60,11 +60,6 @@ namespace AuctionGuard.Domain.Entities
         public Guid UserId { get; set; } 
 
         /// <summary>
-        /// Navigation property for the user.
-        /// </summary>
-        public virtual User User { get; set; }
-
-        /// <summary>
         /// Gets or sets the identifier of the related auction, if applicable.
         /// </summary>
         public Guid? AuctionId { get; set; } 

@@ -85,19 +85,11 @@ namespace AuctionGuard.Domain.Entities
         /// </summary>
         [Required]
         public Guid CreatorId { get; set; }
-        /// <summary>
-        /// Gets or sets the navigation property for the creating user.
-        /// </summary>
-        public User Creator { get; set; }
-
+        
         /// <summary>
         /// Gets or sets the foreign key for the winning user. Null until the auction is won.
         /// </summary>
         public Guid? WinnerId { get; set; }
-        /// <summary>
-        /// Gets or sets the navigation property for the winning user.
-        /// </summary>
-        public User Winner { get; set; }
         #endregion
 
         #region Navigation Collections

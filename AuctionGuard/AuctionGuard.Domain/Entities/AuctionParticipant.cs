@@ -34,11 +34,6 @@ namespace AuctionGuard.Domain.Entities
         /// Gets or sets the navigation property to the Auction.
         /// </summary>
         public Auction Auction { get; set; }
-
-        /// <summary>
-        /// Gets or sets the navigation property to the User.
-        /// </summary>
-        public User Participant { get; set; }
         #endregion
     }
 }
