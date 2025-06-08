@@ -114,10 +114,6 @@ namespace AuctionGuard.Domain.Entities
         /// Gets or sets the foreign key for the User who owns this property.
         /// </summary>
         public Guid OwnerId { get; set; }
-        /// <summary>
-        /// Gets or sets the navigation property for the owner.
-        /// </summary>
-        public User Owner { get; set; }
         #endregion
 
         #region Navigation Collections

@@ -47,11 +47,6 @@ namespace AuctionGuard.Domain.Entities
         /// </summary>
         [Required]
         public Guid BidderId { get; set; } 
-
-        /// <summary>
-        /// Navigation property for the user.
-        /// </summary>
-        public virtual User Bidder { get; set; }
         #endregion
 
     }

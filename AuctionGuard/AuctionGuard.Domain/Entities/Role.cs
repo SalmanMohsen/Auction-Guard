@@ -13,11 +13,6 @@ namespace AuctionGuard.Domain.Entities
         /// Gets the collection of permissions associated with this role.
         /// </summary>
         public ICollection<Permission> Permissions { get; set; } = new HashSet<Permission>();
-
-        /// <summary>
-        /// Gets the collection of user-role assignments for this role.
-        /// </summary>
-        public ICollection<IdentityUserRole<Guid>> Users { get; set; } = new HashSet<IdentityUserRole<Guid>>();
         #endregion
     }
 }

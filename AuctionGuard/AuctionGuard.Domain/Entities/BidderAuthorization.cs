@@ -56,11 +56,6 @@ namespace AuctionGuard.Domain.Entities
         public Guid UserId { get; set; }
 
         /// <summary>
-        /// Gets or sets the navigation property for the user.
-        /// </summary>
-        public User User { get; set; }
-
-        /// <summary>
         /// Gets or sets the foreign key for the auction this authorization is for.
         /// </summary>
         [Required]
