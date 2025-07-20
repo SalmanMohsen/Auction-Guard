@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace AuctionGuard.Infrastructure.Repositories
 {
@@ -16,7 +17,6 @@ namespace AuctionGuard.Infrastructure.Repositories
         private readonly AuctionGuardDbContext _appContext;
         private readonly AuctionGuardIdentityDbContext _identityContext;
         private Hashtable _repositories;
-        private IDbContextTransaction _transaction;
 
         public UnitOfWork(AuctionGuardDbContext appContext, AuctionGuardIdentityDbContext identityContext)
         {
@@ -26,41 +26,37 @@ namespace AuctionGuard.Infrastructure.Repositories
 
         public async Task<int> CommitAsync()
         {
-            if (_transaction == null)
+            // Use TransactionScope to handle distributed transactions across two DbContexts.
+            // This ensures that both SaveChanges calls either succeed together or fail together.
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                _transaction = await _appContext.Database.BeginTransactionAsync();
-                await _identityContext.Database.UseTransactionAsync(_transaction.GetDbTransaction());
-            }
+                try
+                {
+                    // Attempt to save changes in the first context
+                    var appChanges = await _appContext.SaveChangesAsync();
 
-            try
-            {
-                var appChanges = await _appContext.SaveChangesAsync();
-                var identityChanges = await _identityContext.SaveChangesAsync();
+                    // Attempt to save changes in the second context
+                    var identityChanges = await _identityContext.SaveChangesAsync();
 
-                await _transaction.CommitAsync();
+                    // If both saves are successful, complete the scope to commit the transaction.
+                    scope.Complete();
 
-                return appChanges + identityChanges;
-            }
-            catch
-            {
-                await RollbackAsync();
-                throw;
-            }
-            finally
-            {
-                await _transaction.DisposeAsync();
-                _transaction = null;
+                    return appChanges + identityChanges;
+                }
+                catch (Exception)
+                {
+                    // If an exception occurs in either SaveChangesAsync, scope.Complete() is not
+                    // called, and the transaction is automatically rolled back when the scope is disposed.
+                    throw; // Re-throw the exception to be handled by the service layer.
+                }
             }
         }
 
-        public async Task RollbackAsync()
+        public Task RollbackAsync()
         {
-            if (_transaction != null)
-            {
-                await _transaction.RollbackAsync();
-                await _transaction.DisposeAsync();
-                _transaction = null;
-            }
+            // This method is now effectively handled by the TransactionScope's implicit rollback on error.
+            // It can be left empty as it's part of the interface contract.
+            return Task.CompletedTask;
         }
 
         public IGenericRepository<TEntity> GetRepository<TEntity>() where TEntity : class
@@ -75,8 +71,9 @@ namespace AuctionGuard.Infrastructure.Repositories
             if (!_repositories.ContainsKey(type))
             {
                 object repositoryInstance;
-                // Check if the entity belongs to the Identity context
-                if (typeof(TEntity) == typeof(Domain.Entities.User) || typeof(TEntity) == typeof(Domain.Entities.Role) || typeof(TEntity) == typeof(Domain.Entities.Permission))
+                if (typeof(TEntity) == typeof(Domain.Entities.User) ||
+                    typeof(TEntity) == typeof(Domain.Entities.Role) ||
+                    typeof(TEntity) == typeof(Domain.Entities.Permission))
                 {
                     repositoryInstance = new IdentityGenericRepository<TEntity>(_identityContext);
                 }
@@ -92,9 +89,9 @@ namespace AuctionGuard.Infrastructure.Repositories
 
         public void Dispose()
         {
-            _transaction?.Dispose();
             _appContext.Dispose();
             _identityContext.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

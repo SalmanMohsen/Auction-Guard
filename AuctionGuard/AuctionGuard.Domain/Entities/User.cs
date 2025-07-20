@@ -32,6 +32,12 @@ namespace AuctionGuard.Domain.Entities
         public string? LastName { get; set; }
 
         /// <summary>
+        /// Gets or sets the user's physical address.
+        /// </summary>
+        [MaxLength(200)]
+        public string? Address { get; set; }
+
+        /// <summary>
         /// Gets or sets the URL for the user's uploaded identification document image.
         /// </summary>
         [Required]
