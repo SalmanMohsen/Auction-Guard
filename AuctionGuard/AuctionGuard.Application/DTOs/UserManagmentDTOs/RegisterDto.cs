@@ -18,9 +18,9 @@ namespace AuctionGuard.Application.DTOs.UserManagmentDTOs
 
         [Required]
         [StringLength(100, MinimumLength = 8)]
+        [DataType(DataType.Password)]
         public string Password { get; set; }
-
-        [Required]
+   
         public string FirstName { get; set; }
 
         public string? MiddleName { get; set; }

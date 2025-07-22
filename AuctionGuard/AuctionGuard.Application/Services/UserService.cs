@@ -22,7 +22,6 @@ namespace AuctionGuard.Application.Services
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly RoleManager<Role> _roleManager;
-        private readonly IUnitOfWork _unitOfWork; // <-- Inject IUnitOfWork
         private readonly IConfiguration _configuration;
         private readonly IEmailSender _emailSender;
 
@@ -30,14 +29,12 @@ namespace AuctionGuard.Application.Services
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             RoleManager<Role> roleManager,
-            IUnitOfWork unitOfWork, // <-- Add to constructor
             IConfiguration configuration,
             IEmailSender emailSender)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
-            _unitOfWork = unitOfWork; // <-- Initialize
             _configuration = configuration;
             _emailSender = emailSender;
         }
@@ -142,7 +139,7 @@ namespace AuctionGuard.Application.Services
             await _userManager.AddToRoleAsync(user, registerDto.Role);
 
             // Use the UnitOfWork to commit the changes to the database.
-            await _unitOfWork.CommitAsync();
+            //await _unitOfWork.CommitAsync();
 
             return await GenerateAuthenticationResultForUserAsync(user);
         }
@@ -284,11 +281,11 @@ namespace AuctionGuard.Application.Services
 
             var result = await _userManager.ResetPasswordAsync(user, resetPasswordDto.Token, resetPasswordDto.NewPassword);
 
-            if (result.Succeeded)
-            {
-                // Commit the password change
-                await _unitOfWork.CommitAsync();
-            }
+            //if (result.Succeeded)
+            //{
+            //    // Commit the password change
+            //   // await _unitOfWork.CommitAsync();
+            //}
 
             return result.Succeeded;
         }
