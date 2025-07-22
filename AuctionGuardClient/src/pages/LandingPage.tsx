@@ -1,11 +1,19 @@
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
-import { Gavel, Users, Shield, TrendingUp, Eye, UserPlus, LogIn } from "lucide-react";
+import { Gavel, Users, Shield, TrendingUp, Eye, UserPlus, LogIn, User, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    // After logout, the user will be redirected to the landing page automatically
+    // by the router's logic, so no navigate() call is needed here.
+  };
 
   const features = [
     {
@@ -36,7 +44,7 @@ const LandingPage = () => {
       <header className="border-b border-border/50 backdrop-blur-sm bg-background/80 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
               <div className="p-2 rounded-lg bg-gradient-primary">
                 <Gavel className="h-6 w-6 text-white" />
               </div>
@@ -47,22 +55,47 @@ const LandingPage = () => {
             </div>
             
             <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                onClick={() => navigate('/login')}
-                className="gap-2"
-              >
-                <LogIn className="h-4 w-4" />
-                Login
-              </Button>
-              <Button 
-                variant="neon" 
-                onClick={() => navigate('/register')}
-                className="gap-2"
-              >
-                <UserPlus className="h-4 w-4" />
-                Get Started
-              </Button>
+              {isAuthenticated && user ? (
+                // --- Authenticated User View ---
+                <>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => navigate('/dashboard')} // This can be changed to a /profile route later
+                    className="gap-2"
+                  >
+                    <User className="h-4 w-4" />
+                    {user.firstName}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleLogout}
+                    className="gap-2"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                // --- Guest View ---
+                <>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => navigate('/login')}
+                    className="gap-2"
+                  >
+                    <LogIn className="h-4 w-4" />
+                    Login
+                  </Button>
+                  <Button 
+                    variant="neon" 
+                    onClick={() => navigate('/register')}
+                    className="gap-2"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    Get Started
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -181,7 +214,7 @@ const LandingPage = () => {
       <footer className="border-t border-border/50 bg-muted/30 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center text-muted-foreground">
-            <p>&copy; 2024 Auction Guard. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Auction Guard. All rights reserved.</p>
             <p className="text-sm mt-2">Secure • Professional • Trusted</p>
           </div>
         </div>

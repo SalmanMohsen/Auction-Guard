@@ -5,6 +5,7 @@ using AuctionGuard.Infrastructure.Seeders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.ComponentModel.DataAnnotations;
 
 namespace AuctionGuard.API.Controllers.UserController
 {
@@ -32,6 +33,14 @@ namespace AuctionGuard.API.Controllers.UserController
         {
             var users = await _userService.GetAllUsersAsync();
             return Ok(users);
+        }
+
+        [HttpPost("email")]
+        [HasPermission(Permissions.Users.View)]
+        public async Task<IActionResult> GetUserByEmail([FromBody]string Login)
+        {
+            var userEmail = await _userService.GetUserByEmailAsync(Login);
+            return Ok(userEmail);
         }
 
         /// <summary>
@@ -80,9 +89,12 @@ namespace AuctionGuard.API.Controllers.UserController
             {
                 return Unauthorized(new { Errors = result.Errors });
             }
-
-            return Ok(new { Token = result.Token });
+            var user = await _userService.GetUserByEmailAsync(loginDto.Login);
+            
+            return Ok(new { Token = result.Token ,user});
         }
+
+        
 
         /// <summary>
         /// Logs out the user. Accessible by any authenticated user.

@@ -34,19 +34,19 @@ export const DashboardLayout = ({ children, title, description }: DashboardLayou
   };
 
   const getRoleIcon = () => {
-    switch (user?.role) {
-      case 'admin': return Shield;
-      case 'seller': return TrendingUp;
-      case 'bidder': return Users;
+    switch (user?.roles[0]) {
+      case 'Admin': return Shield;
+      case 'Seller': return TrendingUp;
+      case 'Bidder': return Users;
       default: return User;
     }
   };
 
   const getRoleColor = () => {
-    switch (user?.role) {
-      case 'admin': return 'bg-destructive';
-      case 'seller': return 'bg-accent';
-      case 'bidder': return 'bg-primary';
+    switch (user?.roles[0]) {
+      case 'Admin': return 'bg-destructive';
+      case 'Seller': return 'bg-accent';
+      case 'Bidder': return 'bg-primary';
       default: return 'bg-muted';
     }
   };
@@ -62,11 +62,11 @@ export const DashboardLayout = ({ children, title, description }: DashboardLayou
             {/* Logo */}
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-gradient-primary">
-                <Gavel className="h-6 w-6 text-white" />
+                <a href="/"><Gavel className="h-6 w-6 text-white" /></a>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">Auction Guard</h1>
-                <p className="text-xs text-muted-foreground">Professional Dashboard</p>
+                <a href="/"><h1 className="text-xl font-bold text-foreground">Auction Guard</h1></a>
+                <a href="/"><p className="text-xs text-muted-foreground">Professional Dashboard</p></a>
               </div>
             </div>
 
@@ -90,12 +90,12 @@ export const DashboardLayout = ({ children, title, description }: DashboardLayou
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium text-foreground">
-                    {user?.firstName} {user?.lastName}
+                    {/* {user?.firstName}  */}
                   </p>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="text-xs">
                       <RoleIcon className="h-3 w-3 mr-1" />
-                      {user?.role?.charAt(0).toUpperCase()}{user?.role?.slice(1)}
+                      {user?.roles[0]}
                     </Badge>
                   </div>
                 </div>
@@ -134,19 +134,19 @@ export const DashboardLayout = ({ children, title, description }: DashboardLayou
             
             {/* Quick Actions */}
             <div className="flex items-center gap-3">
-              {user?.role === 'seller' && (
+              {user?.roles[0] === 'Seller' && (
                 <Button variant="neon" className="gap-2">
                   <Plus className="h-4 w-4" />
                   Add Property
                 </Button>
               )}
-              {user?.role === 'bidder' && (
+              {user?.roles[0] === 'Bidder' && (
                 <Button variant="accent" className="gap-2">
                   <Search className="h-4 w-4" />
                   Browse Auctions
                 </Button>
               )}
-              {user?.role === 'admin' && (
+              {user?.roles[0] === 'Admin' && (
                 <Button variant="success" className="gap-2">
                   <Shield className="h-4 w-4" />
                   Admin Panel

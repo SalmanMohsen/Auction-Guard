@@ -1,110 +1,83 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { AuthContextType, User, LoginFormData, RegisterFormData } from '../types/auth';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import type { ReactNode } from "react";
+import api from "../api/api";
+import axios from "axios";
+import type { AuthContextType, LoginFormData, RegisterFormData, User, AuthResponse } from "../types/auth";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // On initial app load, check localStorage for a persisted user session.
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        // If a user object exists in storage, we set it as the current user.
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (error) {
+      console.error("Failed to parse user data from localStorage. Clearing it.", error);
+      localStorage.removeItem("user");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const login = async (loginData: LoginFormData) => {
+    const response = await api.post<AuthResponse>("/User/login", loginData);
+    const { user: loggedInUser } = response.data;
+    if (loggedInUser) {
+      // Store the user object for session persistence.
+      localStorage.setItem("user", JSON.stringify(loggedInUser));
+      setUser(loggedInUser);
+    } else {
+      throw new Error(response.data.errors?.join(", ") || "Login failed.");
+    }
+  };
+
+  const register = async (registerData: FormData) => {
+    await api.post("/User/register", registerData);
+  };
+
+  const logout = async () => {
+    try {
+      await api.post('/user/logout');
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        console.log("Backend session invalidated.");
+      } else {
+        console.error("An unexpected error occurred during server logout:", error);
+      }
+    } finally {
+      // Clear the user from the app state and from localStorage.
+      setUser(null);
+      localStorage.removeItem("user");
+    }
+  };
+
+  const value: AuthContextType = {
+    user,
+    isAuthenticated: !!user,
+    isLoading,
+    login,
+    register,
+    logout,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-};
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Mock authentication functions - replace with actual API calls
-  const login = async (credentials: LoginFormData): Promise<void> => {
-    setIsLoading(true);
-    try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      
-      // Mock user data based on email
-      const mockUser: User = {
-        id: '1',
-        firstName: 'John',
-        middleName: 'M',
-        lastName: 'Doe',
-        email: credentials.email,
-        phoneNumber: '+1234567890',
-        address: '123 Main St, City, State',
-        role: credentials.email.includes('admin') ? 'admin' : 
-              credentials.email.includes('seller') ? 'seller' : 'bidder',
-        createdAt: new Date().toISOString(),
-        isActive: true
-      };
-      
-      setUser(mockUser);
-      localStorage.setItem('auth-user', JSON.stringify(mockUser));
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const register = async (data: RegisterFormData): Promise<void> => {
-    setIsLoading(true);
-    try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      
-      const newUser: User = {
-        id: Date.now().toString(),
-        firstName: data.firstName,
-        middleName: data.middleName,
-        lastName: data.lastName,
-        email: data.email,
-        phoneNumber: data.phoneNumber,
-        address: data.address,
-        role: data.role,
-        createdAt: new Date().toISOString(),
-        isActive: true
-      };
-      
-      setUser(newUser);
-      localStorage.setItem('auth-user', JSON.stringify(newUser));
-    } catch (error) {
-      console.error('Registration failed:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('auth-user');
-  };
-
-  // Check for existing session on mount
-  useEffect(() => {
-    const savedUser = localStorage.getItem('auth-user');
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (error) {
-        console.error('Failed to parse saved user:', error);
-        localStorage.removeItem('auth-user');
-      }
-    }
-  }, []);
-
-  const value: AuthContextType = {
-    user,
-    login,
-    register,
-    logout,
-    isLoading
-  };
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
 };

@@ -139,10 +139,51 @@ builder.Services.AddIdentity<User, Role>(options =>
     .AddEntityFrameworkStores<AuctionGuardIdentityDbContext>() 
     .AddDefaultTokenProviders();
 
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    // These settings are crucial for cross-site cookie authentication
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.None; // Allow the cookie to be set from a different origin (your React app)
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // This is REQUIRED for SameSite.None to work
+
+    // This part prevents the API from redirecting to a login page on 401 errors
+    options.Events.OnRedirectToLogin = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = 401;
+        }
+        else
+        {
+            context.Response.Redirect(context.RedirectUri);
+        }
+        return Task.CompletedTask;
+    };
+});
+
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+
+
+const string aunctionGuardClientOrigin = "AuctionGuardClientOrigin";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: aunctionGuardClientOrigin,
+                      policy =>
+                      {
+                          // This must match the URL of your running React app.
+                          policy.WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>())
+                                .AllowAnyHeader()
+                                .AllowAnyMethod()
+                                .AllowCredentials();
+                      });
+});
+
 
 //builder.Services.AddTransient<IEmailSender, MailgunEmailSender>();
 var app = builder.Build();
@@ -178,6 +219,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors(aunctionGuardClientOrigin);
 
 app.UseAuthentication();
 

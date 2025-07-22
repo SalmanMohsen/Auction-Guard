@@ -11,6 +11,7 @@ namespace AuctionGuard.Application.IServices
     {
         Task<AuthenticationResult> RegisterAsync(RegisterDto registerDto);
         Task<AuthenticationResult> LoginAsync(LoginDto loginDto);
+        Task<UserDto?> GetUserByEmailAsync(string userEmail);
         Task LogoutAsync();
         Task<IEnumerable<UserDto>> GetAllUsersAsync();
         Task<UserDto> GetUserByIdAsync(Guid userId);

@@ -1,36 +1,69 @@
-import { Toaster } from "../src/components/ui/toaster";
-import { Toaster as Sonner } from "../src/components/ui/sonner";
-import { TooltipProvider } from "../src/components/ui/tooltip";
+import { Toaster } from "./components/ui/toaster";
+import { Toaster as Sonner } from "./components/ui/sonner";
+import { TooltipProvider } from "./components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "../src/contexts/AuthContext";
-import LandingPage from "../src/pages/LandingPage";
-import RegisterPage from "../src/pages/RegisterPage";
-import LoginPage from "../src/pages/LoginPage";
-import BidderDashboard from "../src/pages/dashboards/BidderDashboard";
-import SellerDashboard from "../src/pages/dashboards/SellerDashboard";
-import AdminDashboard from "../src/pages/dashboards/AdminDashboard";
-import NotFound from "../src/pages/NotFound";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
-  return user ? <>{children}</> : <Navigate to="/login" />;
+// Import all your page components
+import LandingPage from "./pages/LandingPage";
+import RegisterPage from "./pages/RegisterPage";
+import LoginPage from "./pages/LoginPage";
+import BidderDashboard from "./pages/dashboards/BidderDashboard";
+import SellerDashboard from "./pages/dashboards/SellerDashboard";
+import AdminDashboard from "./pages/dashboards/AdminDashboard";
+import NotFound from "./pages/NotFound";
+
+// --- Layout Components for Routing ---
+const ProtectedRoute = () => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+};
+
+const GuestRoute = () => {
+  const { isAuthenticated } = useAuth();
+  return !isAuthenticated ? <Outlet /> : <Navigate to="/dashboard" replace />;
 };
 
 const DashboardRouter = () => {
   const { user } = useAuth();
-  
-  if (!user) return <Navigate to="/login" />;
-  
-  switch (user.role) {
-    case 'bidder': return <BidderDashboard />;
-    case 'seller': return <SellerDashboard />;
-    case 'admin': return <AdminDashboard />;
-    default: return <Navigate to="/login" />;
+  if (!user) return <Navigate to="/login" replace />;
+  const userRole = user.roles[0];
+  switch (userRole) {
+    case 'Bidder': return <BidderDashboard />;
+    case 'Seller': return <SellerDashboard />;
+    case 'Admin': return <AdminDashboard />;
+    default: return <Navigate to="/" replace />;
   }
 };
 
+// --- Route Definitions ---
+const AppRoutes = () => (
+  <Routes>
+    <Route path="/" element={<LandingPage />} />
+    <Route element={<GuestRoute />}>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+    </Route>
+    <Route element={<ProtectedRoute />}>
+      <Route path="/dashboard" element={<DashboardRouter />} />
+    </Route>
+    <Route path="*" element={<NotFound />} />
+  </Routes>
+);
+
 const queryClient = new QueryClient();
+
+// --- Main App Component ---
+
+// This component wrapper prevents routes from rendering until the auth state is known.
+const AppContent = () => {
+    const { isLoading } = useAuth();
+    if (isLoading) {
+        return <div className="min-h-screen w-full flex items-center justify-center"><p>Loading...</p></div>;
+    }
+    return <AppRoutes />;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -39,13 +72,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/dashboard" element={<ProtectedRoute><DashboardRouter /></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AppContent />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

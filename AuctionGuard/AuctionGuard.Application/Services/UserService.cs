@@ -42,6 +42,37 @@ namespace AuctionGuard.Application.Services
             _emailSender = emailSender;
         }
 
+        public async Task<UserDto?> GetUserByEmailAsync(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) return null;
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var permissions = new List<string>();
+
+            foreach (var roleName in roles)
+            {
+                var role = await _roleManager.FindByNameAsync(roleName);
+                if (role != null)
+                {
+                    var roleClaims = await _roleManager.GetClaimsAsync(role);
+                    permissions.AddRange(roleClaims.Where(c => c.Type == "Permission").Select(c => c.Value));
+                }
+            }
+
+            return new UserDto
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                MiddleName = user.MiddleName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                RegisterDate = user.RegisterDate,
+                Roles = roles,
+                Permissions = permissions.Distinct()
+            };
+        }
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
         {
             var users = await _userManager.Users.ToListAsync();
