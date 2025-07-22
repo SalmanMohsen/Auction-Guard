@@ -54,7 +54,7 @@ This project is built using a modern technology stack for both the backend and f
     * React 19
     * TypeScript
     * Vite
-    * CSS3
+    * Tailwind
 
 ### Project Structure
 
