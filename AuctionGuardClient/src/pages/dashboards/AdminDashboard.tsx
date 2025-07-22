@@ -3,8 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Shield, Users, AlertTriangle, CheckCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
+
   const pendingApprovals = [
     { id: 1, type: "Property", title: "Modern Condo", submitter: "John Doe" },
     { id: 2, type: "User", title: "Seller Account", submitter: "Jane Smith" }
@@ -58,7 +61,7 @@ const AdminDashboard = () => {
                 <span>Verified Sellers</span>
                 <span className="font-bold text-accent">892</span>
               </div>
-              <Button variant="neon" className="w-full gap-2">
+              <Button variant="neon" className="w-full gap-2" onClick={() => navigate('/admin/users')}>
                 <Shield className="h-4 w-4" />
                 Manage Users
               </Button>

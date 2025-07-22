@@ -2,7 +2,7 @@
  * Defines the roles a user can have within the application.
  */
 export type UserRole = 'Bidder' | 'Seller' | 'Admin';
-
+// export type RegUserRole = 
 /**
  * Interface for the data required to register a new user.
  */
@@ -10,13 +10,12 @@ export interface RegisterFormData {
   firstName: string;
   middleName?: string;
   lastName: string;
-  login: string;
+  email: string;
   phoneNumber: string;
-  address: string;
   password: string;
   confirmPassword: string;
-  idImage?: File;
-  roles: 'bidder' | 'seller';
+  //idImage?: string;
+  role: string[];
 }
 
 /**
@@ -25,6 +24,7 @@ export interface RegisterFormData {
 export interface LoginFormData {
   login: string;
   password: string;
+  rememberMe: boolean;
 }
 
 /**
@@ -88,7 +88,7 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   login: (credentials: LoginFormData) => Promise<void>;
  // register: (data: RegisterFormData) => Promise<void>;
-  register: (data: FormData) => Promise<void>;
+  register: (data: RegisterFormData) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }

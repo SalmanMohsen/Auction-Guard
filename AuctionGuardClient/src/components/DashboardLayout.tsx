@@ -147,7 +147,7 @@ export const DashboardLayout = ({ children, title, description }: DashboardLayou
                 </Button>
               )}
               {user?.roles[0] === 'Admin' && (
-                <Button variant="success" className="gap-2">
+                <Button variant="success" className="gap-2" onClick={() => navigate('/dashboard')}>
                   <Shield className="h-4 w-4" />
                   Admin Panel
                 </Button>

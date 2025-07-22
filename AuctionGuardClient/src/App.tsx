@@ -13,6 +13,10 @@ import BidderDashboard from "./pages/dashboards/BidderDashboard";
 import SellerDashboard from "./pages/dashboards/SellerDashboard";
 import AdminDashboard from "./pages/dashboards/AdminDashboard";
 import NotFound from "./pages/NotFound";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import GetAllUsersPage from "./pages/dashboards/admin/GetAllUsersPage";
+import UpdateUserPage from "./pages/dashboards/admin/UpdateUserPage";
 
 // --- Layout Components for Routing ---
 const ProtectedRoute = () => {
@@ -24,6 +28,11 @@ const GuestRoute = () => {
   const { isAuthenticated } = useAuth();
   return !isAuthenticated ? <Outlet /> : <Navigate to="/dashboard" replace />;
 };
+
+const AdminRoute = () => {
+    const { user } = useAuth();
+    return user?.roles.includes('Admin') ? <Outlet /> : <Navigate to="/dashboard" replace />;
+}
 
 const DashboardRouter = () => {
   const { user } = useAuth();
@@ -44,9 +53,16 @@ const AppRoutes = () => (
     <Route element={<GuestRoute />}>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
     </Route>
     <Route element={<ProtectedRoute />}>
       <Route path="/dashboard" element={<DashboardRouter />} />
+      {/* 👇 Admin Routes are defined here 👇 */}
+      <Route element={<AdminRoute />}>
+        <Route path="/admin/users" element={<GetAllUsersPage />} />
+        <Route path="/admin/user/update/:userId" element={<UpdateUserPage />} />
+      </Route>
     </Route>
     <Route path="*" element={<NotFound />} />
   </Routes>

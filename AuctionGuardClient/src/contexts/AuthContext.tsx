@@ -2,7 +2,8 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import type { ReactNode } from "react";
 import api from "../api/api";
 import axios from "axios";
-import type { AuthContextType, LoginFormData, RegisterFormData, User, AuthResponse } from "../types/auth";
+import { registerUser } from "../api/authApi";
+import type { AuthContextType, LoginFormData, User, AuthResponse, RegisterFormData } from "../types/auth";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -42,8 +43,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (registerData: FormData) => {
-    await api.post("/User/register", registerData);
+  const register = async (registerData: RegisterFormData) => {
+    await api.post('/user/register', registerData);
   };
 
   const logout = async () => {

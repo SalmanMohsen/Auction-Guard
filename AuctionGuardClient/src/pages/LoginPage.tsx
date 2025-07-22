@@ -4,10 +4,11 @@ import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import { Gavel, ArrowLeft, Eye, EyeOff } from "lucide-react"; // Added Eye and EyeOff
+import { Gavel, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import type { LoginFormData } from "../types/auth";
 import { useToast } from "../hooks/use-toast";
+import { Checkbox } from "../components/ui/checkbox";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -16,18 +17,18 @@ const LoginPage = () => {
 
   const [formData, setFormData] = useState<LoginFormData>({
     login: '',
-    password: ''
+    password: '',
+    rememberMe: false
   });
 
-  // *** THIS WAS THE MISSING LINE ***
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Partial<LoginFormData>>({});
 
 
-  const handleInputChange = (field: keyof LoginFormData, value: string) => {
+  const handleInputChange = (field: keyof LoginFormData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+    if (errors[field as keyof LoginFormData]) {
+      setErrors(prev => ({ ...prev, [field as keyof LoginFormData]: undefined }));
     }
   };
 
@@ -133,6 +134,16 @@ const LoginPage = () => {
               {errors.password && (
                 <p className="text-xs text-red-400">{errors.password}</p>
               )}
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Checkbox id="remember-me" checked={formData.rememberMe} onCheckedChange={(checked) => handleInputChange('rememberMe', checked as boolean)} />
+                <Label htmlFor="remember-me" className="text-sm text-gray-400">Remember me</Label>
+              </div>
+              <Button variant="link" onClick={() => navigate('/forgot-password')} className="text-blue-400 hover:text-blue-300 p-0 h-auto">
+                Forgot your password?
+              </Button>
             </div>
 
             <Button 
