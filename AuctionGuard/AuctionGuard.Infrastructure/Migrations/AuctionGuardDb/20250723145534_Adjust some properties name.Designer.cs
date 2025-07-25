@@ -4,6 +4,7 @@ using AuctionGuard.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AuctionGuard.Infrastructure.Migrations.AuctionGuardDb
 {
     [DbContext(typeof(AuctionGuardDbContext))]
-    partial class AuctionGuardDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250723145534_Adjust some properties name")]
+    partial class Adjustsomepropertiesname
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,10 +40,10 @@ namespace AuctionGuard.Infrastructure.Migrations.AuctionGuardDb
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal>("GuaranteeDeposit")
+                    b.Property<decimal?>("GuaranteeDeposit")
                         .HasColumnType("decimal(18, 2)");
 
-                    b.Property<decimal>("MinBidIncrement")
+                    b.Property<decimal?>("MinBidIncrement")
                         .HasColumnType("decimal(18, 2)");
 
                     b.Property<Guid>("PropertyId")
@@ -197,8 +200,10 @@ namespace AuctionGuard.Infrastructure.Migrations.AuctionGuardDb
                     b.Property<Guid>("PropertyId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<long?>("Size")
-                        .HasColumnType("bigint");
+                    b.Property<string>("Size")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("ImageId");
 

@@ -16,9 +16,8 @@ namespace AuctionGuard.Domain.Entities
     {
         Available, 
         UnderAuction, 
-        Sold, 
-        UnderApproval,
-        Inactive
+        Sold
+       
     }
 
     /// <summary>
@@ -39,6 +38,7 @@ namespace AuctionGuard.Domain.Entities
     public enum ApprovalStatus
     {  
         Approved, 
+        UnderApproval,
         Rejected 
     }
 
@@ -71,7 +71,7 @@ namespace AuctionGuard.Domain.Entities
         /// <summary>
         /// Gets or sets the geographical coordinates (e.g., latitude, longitude).
         /// </summary>
-        public string LocationCoordinates { get; set; }
+        public string? LocationCoordinates { get; set; }
 
         /// <summary>
         /// Gets or sets the initial or estimated price of the property.
@@ -86,7 +86,7 @@ namespace AuctionGuard.Domain.Entities
         ///<summary>
         ///Gets or sets the date of the property construction
         ///</summary>
-        public DateTime ConstructedOn { get; set; }
+        public DateOnly ConstructedOn { get; set; }
 
         /// <summary>
         /// Gets or sets the current status of the property (e.g. 'Available', 'Sold', 'Inactive').
@@ -96,7 +96,7 @@ namespace AuctionGuard.Domain.Entities
         /// <summary>
         /// Gets or sets the date the listing was last renewed.
         /// </summary>
-        public DateTime? LastRenew { get; set; }
+        public DateOnly? LastRenew { get; set; }
 
         /// <summary>
         /// Gets or sets the category or type of the property.

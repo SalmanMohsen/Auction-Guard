@@ -42,8 +42,7 @@ namespace AuctionGuard.Domain.Entities
         /// <summary>
         /// Gets or sets information about the image size.
         /// </summary>
-        [StringLength(50)]
-        public string Size { get; set; }
+        public long? Size { get; set; }
 
         /// <summary>
         /// Gets or sets the URL or path to the image file.

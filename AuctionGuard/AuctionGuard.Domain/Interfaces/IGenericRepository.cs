@@ -13,7 +13,8 @@ namespace AuctionGuard.Domain.Interfaces
         Task<T?> GetByIdAsync(Guid id);
         Task<IEnumerable<T>> GetAllAsync();
         Task<T?> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate);
-        IQueryable<T> Find(Expression<Func<T, bool>> predicate);
+        Task<T?> FindAsync(Expression<Func<T, bool>> predicate);
+        Task<IEnumerable<T?>> FindAllByPredicateAsync(Expression<Func<T, bool>> predicate);
         Task<T> AddAsync(T entity);
         Task AddRangeAsync(IEnumerable<T> entities);
         void Update(T entity);

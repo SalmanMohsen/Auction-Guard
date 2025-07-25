@@ -48,7 +48,7 @@ namespace AuctionGuard.Domain.Entities
         /// Gets or sets the minimum amount by which a new bid must exceed the current one.
         /// </summary>
         [Column(TypeName = "decimal(18, 2)")]
-        public decimal? MinBidIncrement { get; set; }
+        public decimal MinBidIncrement { get; set; }
 
         /// <summary>
         /// Gets or sets the current status of the auction (e.g., 'Scheduled', 'Active', 'Ended').
@@ -66,7 +66,7 @@ namespace AuctionGuard.Domain.Entities
         /// Gets or sets an optional deposit amount required to participate.
         /// </summary>
         [Column(TypeName = "decimal(18, 2)")]
-        public decimal? GuaranteeDeposit { get; set; }
+        public decimal GuaranteeDeposit { get; set; }
         #endregion
 
         #region Foreign Keys & Navigation Properties

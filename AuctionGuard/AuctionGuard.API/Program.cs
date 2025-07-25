@@ -31,10 +31,12 @@ builder.Services.AddDbContext<AuctionGuardIdentityDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("Identity")));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+//builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(IdentityGenericRepository<>));
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(AppGenericRepository<>));
-builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(IdentityGenericRepository<>));
+
 
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IPropertyService, PropertyService>();
 builder.Services.AddHttpClient();
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 

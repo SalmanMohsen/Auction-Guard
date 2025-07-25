@@ -36,9 +36,14 @@ namespace AuctionGuard.Infrastructure.Repositories
             return await _dbSet.FirstOrDefaultAsync(predicate);
         }
 
-        public IQueryable<T> Find(Expression<Func<T, bool>> predicate)
+        public async Task<T?> FindAsync(Expression<Func<T, bool>> predicate)
         {
-            return _dbSet.Where(predicate);
+            return await _dbSet.FindAsync(predicate);
+        }
+
+        public async Task<IEnumerable<T?>> FindAllByPredicateAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbSet.Where(predicate).ToListAsync();
         }
 
         public async Task<T> AddAsync(T entity)
