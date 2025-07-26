@@ -42,7 +42,7 @@ namespace AuctionGuard.API.Controllers.PropertyController
         /// Gets the properties that the user has if he is a seller.
         /// </summary>
         [HttpGet("{id:guid}/GetMyProperties")]
-        [Authorize(Permissions.Properties.Create)]
+        [HasPermission(Permissions.Properties.Create)]
         public async Task<ActionResult<IEnumerable<PropertyDto>>> GetSellerProperties(Guid id)
         {
             var properties = await _propertyService.GetSellerPropertiesAsync(id);
@@ -103,15 +103,19 @@ namespace AuctionGuard.API.Controllers.PropertyController
         public async Task<IActionResult> UpdateProperty(Guid id, [FromBody] UpdatePropertyDto updatePropertyDto)
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var property = await _propertyService.GetPropertyByIdAsync(id);
             if (!Guid.TryParse(userIdString, out Guid userId))
             {
                 return Unauthorized("Invalid user identifier.");
             }
-
-            var updatedProperty = await _propertyService.UpdatePropertyAsync(id, updatePropertyDto, userId);
+            var isAdmin = User.IsInRole("Admin");
+            if(!isAdmin || property.OwnerId != userId)
+            {
+                return Unauthorized("You are not allowed to edit this property.");
+            }
+            var updatedProperty = await _propertyService.UpdatePropertyAsync(id, updatePropertyDto);
             if (updatedProperty == null)
             {
-                // Returns 403 Forbidden if the user is not the owner of the property.
                 return Forbid();
             }
             return Ok(updatedProperty);
@@ -141,19 +145,23 @@ namespace AuctionGuard.API.Controllers.PropertyController
         [HasPermission(Permissions.Properties.Delete)]
         public async Task<IActionResult> DeleteProperty(Guid id)
         {
+            var property = await _propertyService.GetPropertyByIdAsync(id);
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!Guid.TryParse(userIdString, out Guid userId))
             {
                 return Unauthorized("Invalid user identifier.");
             }
-
+            
             var isAdmin = User.IsInRole("Admin");
-            var result = await _propertyService.DeletePropertyAsync(id, userId, isAdmin);
-
-            if (!result)
+            if(!isAdmin|| userId != property.OwnerId)
             {
-                // Returns 403 Forbidden if the user is not the owner and not an admin.
-                return Forbid();
+                return Unauthorized("You are not allowed to delete this property.");
+            }
+            var result = await _propertyService.DeletePropertyAsync(id);
+
+            if (!result )
+            {
+                return BadRequest();
             }
 
             return NoContent();

@@ -17,9 +17,9 @@ namespace AuctionGuard.Application.IServices
         Task<IEnumerable<PropertyDto>> GetApprovedPropertiesAsync();
         Task<IEnumerable<PropertyDto>> GetUnderApprovalPropertiesAsync();
         Task<IEnumerable<PropertyDto>> GetSellerPropertiesAsync(Guid id);
-        Task<PropertyDto?> UpdatePropertyAsync(Guid id, UpdatePropertyDto updatePropertyDto, Guid userId);
+        Task<PropertyDto?> UpdatePropertyAsync(Guid id, UpdatePropertyDto updatePropertyDto);
         Task<bool> UpdatePropertyApprovalStatusAsync(Guid id, UpdateApprovalStatusDto statusDto);
-        Task<bool> DeletePropertyAsync(Guid id, Guid userId, bool isAdmin);
+        Task<bool> DeletePropertyAsync(Guid id);
         
     }
 }
