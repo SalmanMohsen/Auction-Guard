@@ -37,6 +37,25 @@ builder.Services.AddScoped<IPropertyService, PropertyService>();
 builder.Services.AddScoped<IAuctionService, AuctionService>();
 builder.Services.AddScoped<IOfferService, OfferService>();
 
+// Bind PayPal settings from appsettings.json
+builder.Services.Configure<PayPalSettings>(builder.Configuration.GetSection("PayPal"));
+
+builder.Services.AddScoped<IAuctionParticipationService, AuctionParticipationService>();
+builder.Services.AddMemoryCache();
+
+builder.Services.AddScoped<IPayPalOnboardingService, PayPalOnboardingService>();
+builder.Services.AddScoped<IPaymentGatewayService, PayPalService>();
+
+builder.Services.AddHttpClient<IPayPalClientService, PayPalClientService>((serviceProvider, client) =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var payPalMode = configuration["PayPal:Platform:Mode"]; 
+    var baseUrl = payPalMode == "Sandbox"
+        ? "https://api-m.sandbox.paypal.com"
+        : "https://api-m.paypal.com";
+    client.BaseAddress = new Uri(baseUrl);
+});
+
 builder.Services.AddHttpClient();
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 

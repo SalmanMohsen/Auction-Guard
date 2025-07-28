@@ -89,7 +89,7 @@ namespace AuctionGuard.API.Controllers.UserController
             {
                 return Unauthorized(new { Errors = result.Errors });
             }
-            var user = await _userService.GetUserByEmailAsync(loginDto.Login);
+            var user = await _userService.GetUserByEmailAsync(loginDto.Email);
             
             return Ok(new { Token = result.Token ,user});
         }

@@ -1,10 +1,12 @@
 ﻿using AuctionGuard.Application.Authorization;
 using AuctionGuard.Application.DTOs.AuctionDTOs;
+using AuctionGuard.Application.DTOs.AuctionParticipationDTOs;
 using AuctionGuard.Application.IServices;
 using AuctionGuard.Application.Services;
 using AuctionGuard.Infrastructure.Seeders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using System.Security.Claims;
 
 namespace AuctionGuard.API.Controllers.AuctionController
@@ -15,10 +17,19 @@ namespace AuctionGuard.API.Controllers.AuctionController
     public class AuctionsController : ControllerBase
     {
         private readonly IAuctionService _auctionService;
+        private readonly IAuctionParticipationService _participationService;
+        private readonly IMemoryCache _cache;
+        private readonly IConfiguration _configuration;
 
-        public AuctionsController(IAuctionService auctionService)
+        public AuctionsController(IAuctionService auctionService,
+            IAuctionParticipationService participationService,
+            IMemoryCache cache,
+            IConfiguration configuration)
         {
             _auctionService = auctionService;
+            _participationService = participationService;
+            _cache = cache;
+            _configuration = configuration;
         }
 
         [HttpPost]
@@ -186,5 +197,109 @@ namespace AuctionGuard.API.Controllers.AuctionController
 
             return Ok(new { message = error }); // Success message from service
         }
+
+        #region Participation Endpoints
+
+        [HttpPost("{auctionId:guid}/join")]
+        [HasPermission(Permissions.Auctions.Participate)]
+        public async Task<IActionResult> JoinAuction(Guid auctionId)
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userIdString, out Guid userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+
+            var (response, error) = await _participationService.InitiateJoinProcessAsync(auctionId, userId);
+            if (error != null)
+            {
+                if (response?.ApprovalUrl == "JOINED_NO_DEPOSIT")
+                {
+                    return Ok(new { message = error, status = "Joined" });
+                }
+                return BadRequest(new { message = error });
+            }
+
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// Callback endpoint for successful PayPal approval of the deposit hold.
+        /// </summary>
+        [HttpGet("join/success")]
+        [AllowAnonymous] // Must be anonymous
+        public async Task<IActionResult> JoinAuctionSuccess([FromQuery] string token) // 'token' is the PayPal orderId
+        {
+            var frontendBaseUrl = _configuration["ApplicationBaseUrl"];
+
+            // *** PRIMARY FIX IS HERE ***
+            // Retrieve the cached object using the token from PayPal.
+            if (!_cache.TryGetValue(token, out PayPalOrderCacheDto? cacheEntry) || cacheEntry == null)
+            {
+                return Redirect($"{frontendBaseUrl}/join-failed?error=invalid_or_expired_order");
+            }
+
+            // Extract the IDs from the cached object.
+            Guid auctionId = cacheEntry.AuctionId;
+            Guid userId = cacheEntry.UserId;
+
+            var (success, error) = await _participationService.ConfirmJoinProcessAsync(token, userId, auctionId);
+            if (!success)
+            {
+                return Redirect($"{frontendBaseUrl}/join-failed?error={Uri.EscapeDataString(error ?? "confirmation_failed")}");
+            }
+
+            _cache.Remove(token); // Clean up cache
+            return Redirect($"{frontendBaseUrl}/auction/{auctionId}?status=joined_successfully");
+        }
+
+        /// <summary>
+        /// Callback endpoint for cancelled PayPal approval.
+        /// </summary>
+        [HttpGet("join/cancel")]
+        [AllowAnonymous]
+        public IActionResult JoinAuctionCancel()
+        {
+            var frontendBaseUrl = _configuration["ApplicationBaseUrl"];
+            // Redirect user to a page on the frontend explaining the cancellation.
+            return Redirect($"{frontendBaseUrl}/auctions?status=join_cancelled");
+        }
+
+        // --- Other participation endpoints (Leave, Status) remain the same ---
+        [HttpPost("{auctionId:guid}/leave")]
+        [HasPermission(Permissions.Auctions.Participate)]
+        public async Task<IActionResult> LeaveAuction(Guid auctionId)
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userIdString, out Guid userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+
+            var (success, error) = await _participationService.LeaveAuctionAsync(auctionId, userId);
+            if (!success)
+            {
+                return BadRequest(new { message = error });
+            }
+
+            return Ok(new { message = error });
+        }
+
+        [HttpGet("{auctionId:guid}/participation-status")]
+        [HasPermission(Permissions.Auctions.Participate)]
+        public async Task<IActionResult> GetParticipationStatus(Guid auctionId)
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userIdString, out Guid userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+
+            var status = await _participationService.CheckParticipationStatusAsync(auctionId, userId);
+            return Ok(status);
+        }
+
+
+        #endregion
     }
 }

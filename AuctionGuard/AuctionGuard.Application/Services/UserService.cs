@@ -146,8 +146,8 @@ namespace AuctionGuard.Application.Services
 
         public async Task<AuthenticationResult> LoginAsync(LoginDto loginDto)
         {
-            var user = await _userManager.FindByEmailAsync(loginDto.Login)
-                       ?? await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == loginDto.Login);
+            var user = await _userManager.FindByEmailAsync(loginDto.Email)
+                       ?? await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == loginDto.Email);
 
             if (user == null)
             {
