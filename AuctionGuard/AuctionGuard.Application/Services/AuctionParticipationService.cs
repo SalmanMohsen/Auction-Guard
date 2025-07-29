@@ -51,7 +51,7 @@ namespace AuctionGuard.Application.Services
                 return (new JoinAuctionResponseDto { ApprovalUrl = "JOINED_NO_DEPOSIT" }, "Successfully joined auction. No deposit was required.");
             }
 
-            // --- THIS SECTION IS NOW UPDATED ---
+            
             var (orderId, approvalUrl, error) = await _payPalClient.CreateDepositOrderAsync(auction.GuaranteeDeposit, "USD", auctionId, userId);
 
             // If there's an error, it will now contain the detailed reason from PayPal.

@@ -18,9 +18,17 @@ using AuctionGuard.Application.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using AuctionGuard.API.Authorization;
+using AuctionGuard.API.Hubs;
+using AuctionGuard.API.Services;
+using AuctionGuard.Infrastructure.BackgroundServices;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Services.AddLogging();
 
 // Add services to the container.
 
@@ -36,11 +44,18 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPropertyService, PropertyService>();
 builder.Services.AddScoped<IAuctionService, AuctionService>();
 builder.Services.AddScoped<IOfferService, OfferService>();
+builder.Services.AddScoped<IBiddingService, BiddingService>();
+
+// Add SignalR
+builder.Services.AddSignalR();
 
 // Bind PayPal settings from appsettings.json
 builder.Services.Configure<PayPalSettings>(builder.Configuration.GetSection("PayPal"));
 
 builder.Services.AddScoped<IAuctionParticipationService, AuctionParticipationService>();
+
+builder.Services.AddHostedService<AuctionStatusUpdaterService>();
+builder.Services.AddSingleton<IAuctionNotifier, SignalRNotifier>();
 builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<IPayPalOnboardingService, PayPalOnboardingService>();
@@ -242,6 +257,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+
+
 app.UseCors(aunctionGuardClientOrigin);
 
 app.UseAuthentication();
@@ -249,5 +266,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<BiddingHub>("bidding-hub");
 
 app.Run();
