@@ -150,7 +150,7 @@ namespace AuctionGuard.Application.Services
 
         public async Task<AuthenticationResult> LoginAsync(LoginDto loginDto)
         {
-            _logger.LogInformation("------------------------------------- Starting searching for user's email ------------------------------------------", loginDto.Email, loginDto.Password);
+           
             var user = await _userManager.FindByEmailAsync(loginDto.Email)
                        ?? await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == loginDto.Email);
 
@@ -286,19 +286,14 @@ namespace AuctionGuard.Application.Services
 
             var result = await _userManager.ResetPasswordAsync(user, resetPasswordDto.Token, resetPasswordDto.NewPassword);
 
-            //if (result.Succeeded)
-            //{
-            //    // Commit the password change
-            //   // await _unitOfWork.CommitAsync();
-            //}
 
             return result.Succeeded;
         }
 
-        // The GenerateAuthenticationResultForUserAsync method remains the same as it does not modify data.
+        
         private async Task<AuthenticationResult> GenerateAuthenticationResultForUserAsync(User user)
         {
-            // ... (Implementation from previous response)
+           
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
 
@@ -307,6 +302,7 @@ namespace AuctionGuard.Application.Services
                 new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                
                 new Claim("id", user.Id.ToString())
             };
 

@@ -73,37 +73,47 @@ builder.Services.AddHttpClient<IPayPalClientService, PayPalClientService>((servi
 
 builder.Services.AddHttpClient();
 builder.Services.AddTransient<IEmailSender, EmailSender>();
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+var configuration = builder.Configuration;
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"])),
-        ValidateIssuer = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidateAudience = true,
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        RequireExpirationTime = true, 
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
-    };
-
-    options.Events = new JwtBearerEvents
-    {
-        OnChallenge = context =>
+        options.TokenValidationParameters = new TokenValidationParameters
         {
-            context.HandleResponse();
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            context.Response.ContentType = "application/json";
-            return context.Response.WriteAsync("{\"message\": \"Unauthorized. Token is missing or invalid.\"}");
-        }
-    };
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = configuration["Jwt:Issuer"],
+            ValidAudience = configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!)
+            )
+        };
+
+    //    options.Events = new JwtBearerEvents
+    //{
+    //    OnMessageReceived = context =>
+    //    {
+    //        var accessToken = context.Request.Query["access_token"];
+
+       
+    //        var path = context.HttpContext.Request.Path;
+    //        if (!string.IsNullOrEmpty(accessToken) &&
+    //            (path.StartsWithSegments("/testing-hub")))
+    //        {
+                
+    //            context.Token = accessToken;
+    //        }
+    //        return Task.CompletedTask;
+    //    },
+    //    OnAuthenticationFailed = context =>
+    //    {
+           
+    //        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+    //        logger.LogError(context.Exception, "@@@@@ JWT Authentication failed.");
+    //        return Task.CompletedTask;
+    //    }
+    //};
 });
 
 
@@ -133,7 +143,7 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
-    // Only include API controllers (those with [ApiController]) 
+    
     c.DocInclusionPredicate((docName, description) =>
     {
         if (description.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor controllerActionDescriptor)
@@ -144,13 +154,12 @@ builder.Services.AddSwaggerGen(c =>
         return false;
     });
 
-    //var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"; 
-    //c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename)); 
 
 });
 
-
-// --- START: Authorization Configuration ---
+//var jwtKey = builder.Configuration["Jwt:Key"];
+//var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+//var jwtAudience = builder.Configuration["Jwt:Audience"];
 
 // Register the custom Authorization Policy Provider as a Singleton.
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, HasPermissionPolicyProvider>();
@@ -161,7 +170,7 @@ builder.Services.AddScoped<IAuthorizationHandler, HasPermissionHandler>();
 // Add base authorization services.
 builder.Services.AddAuthorization();
 
-// --- END: Authorization Configuration ---
+
 
 builder.Services.AddIdentity<User, Role>(options =>
 {
@@ -177,28 +186,10 @@ builder.Services.AddIdentity<User, Role>(options =>
     .AddDefaultTokenProviders();
 
 
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    // These settings are crucial for cross-site cookie authentication
-    options.Cookie.HttpOnly = true;
-    options.Cookie.SameSite = SameSiteMode.None; // Allow the cookie to be set from a different origin (your React app)
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // This is REQUIRED for SameSite.None to work
 
-    // This part prevents the API from redirecting to a login page on 401 errors
-    options.Events.OnRedirectToLogin = context =>
-    {
-        if (context.Request.Path.StartsWithSegments("/api"))
-        {
-            context.Response.StatusCode = 401;
-        }
-        else
-        {
-            context.Response.Redirect(context.RedirectUri);
-        }
-        return Task.CompletedTask;
-    };
-});
-
+//Settings.SECRET_KEY = jwtKey;
+//Settings.ISSUER = jwtIssuer;
+//Settings.AUDIENCE = jwtAudience;
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -213,7 +204,6 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: aunctionGuardClientOrigin,
                       policy =>
                       {
-                          // This must match the URL of your running React app.
                           policy.WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>())
                                 .AllowAnyHeader()
                                 .AllowAnyMethod()
@@ -231,7 +221,7 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     try
     {
-        // Call the seeder to create roles and assign permissions
+        
         await IdentityDataSeeder.SeedRolesAndPermissionsAsync(services);        
     }
     catch (Exception ex)
@@ -261,12 +251,14 @@ app.UseHttpsRedirection();
 
 app.UseCors(aunctionGuardClientOrigin);
 
+app.UseRouting();   
+
 app.UseAuthentication();
 
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapHub<BiddingHub>("bidding-hub");
+app.MapHub<TestingHub>("/testing-hub");
 
 app.Run();

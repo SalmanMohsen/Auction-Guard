@@ -58,7 +58,6 @@ const AppRoutes = () => (
     </Route>
     <Route element={<ProtectedRoute />}>
       <Route path="/dashboard" element={<DashboardRouter />} />
-      {/* 👇 Admin Routes are defined here 👇 */}
       <Route element={<AdminRoute />}>
         <Route path="/admin/users" element={<GetAllUsersPage />} />
         <Route path="/admin/user/update/:userId" element={<UpdateUserPage />} />
