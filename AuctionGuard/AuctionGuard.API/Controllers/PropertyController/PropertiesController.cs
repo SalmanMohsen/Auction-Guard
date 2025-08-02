@@ -10,7 +10,7 @@ namespace AuctionGuard.API.Controllers.PropertyController
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Require authentication for all actions by default
+    [Authorize] 
     public class PropertiesController : ControllerBase
     {
         private readonly IPropertyService _propertyService;

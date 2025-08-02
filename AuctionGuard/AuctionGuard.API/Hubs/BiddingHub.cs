@@ -26,10 +26,13 @@ namespace AuctionGuard.API.Hubs
             _auctionRepo = auctionRepo;
             _logger = logger; 
         }
-        public async Task Ping()
+        public async Task Ping(string message)
         {
-            _logger.LogInformation("--------------------------------------------- 'Ping' method successfully received from User: {UserId} ----------------------------------------------------------------", Context.UserIdentifier);
-            await Clients.All.SendAsync("Pong", "Server is alive and received your ping!");
+            // This is the log we are trying to see
+            _logger.LogInformation("-------------------------------------------- TEST HUB PING RECEIVED: {Message} -------------------------------------", message);
+
+            // Send a message back to the caller to confirm
+            await Clients.All.SendAsync("Pong", $"Server has received your message: {message}");
         }
 
         public async Task PlaceBid(Guid auctionId, decimal amount)

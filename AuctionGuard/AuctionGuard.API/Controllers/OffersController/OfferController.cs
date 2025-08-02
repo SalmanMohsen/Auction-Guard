@@ -21,7 +21,7 @@ namespace AuctionGuard.API.Controllers.OffersController
         }
 
         [HttpPost("auctions/{auctionId:guid}")]
-        [HasPermission(Permissions.Auctions.Edit)] // Assuming editing an auction includes adding offers
+        [HasPermission(Permissions.Auctions.Edit)] 
         public async Task<IActionResult> AddOfferToAuction(Guid auctionId, [FromBody] CreateOfferDto offerDto)
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
