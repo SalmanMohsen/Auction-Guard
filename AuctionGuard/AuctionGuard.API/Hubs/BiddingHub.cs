@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace AuctionGuard.API.Hubs
 {
-    //[Authorize]
+    [Authorize]
     public sealed class BiddingHub : Hub
     {
         private readonly IBiddingService _biddingService;
@@ -35,7 +35,7 @@ namespace AuctionGuard.API.Hubs
             await Clients.All.SendAsync("Pong", $"Server has received your message: {message}");
         }
 
-        public async Task PlaceBid(Guid auctionId, decimal amount)
+        public async Task PlaceBid( Guid auctionId, decimal amount)
         {
             _logger.LogInformation("--- Hub Method 'PlaceBid' invoked by User: {UserId} for Auction: {AuctionId} ---", Context.UserIdentifier, auctionId);
 
