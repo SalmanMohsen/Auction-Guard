@@ -25,7 +25,7 @@ This project provides a secure, reliable, and user-friendly environment for real
 
 * **Real-Time Auctions**:
     * Sellers can schedule auctions with specific start and end times, minimum bid increments, and optional guarantee deposits.
-    * Real-time bidding with live updates on the current highest bid.
+    * Real-time bidding with live updates on the current highest bid using SignalR library.
     * Instant notifications for users when they are outbid, or when an auction they are interested in is starting or ending soon.
     * Sellers can create special offers that are triggered when the bid amount reaches a certain threshold.
 
