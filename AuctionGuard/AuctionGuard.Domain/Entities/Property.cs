@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
+using Microsoft.AspNetCore.Http;
 
 namespace AuctionGuard.Domain.Entities
 {
@@ -122,11 +123,15 @@ namespace AuctionGuard.Domain.Entities
         /// </summary>
         public ICollection<Auction> Auctions { get; set; } = new HashSet<Auction>();
 
+        
         /// <summary>
         /// Gets the collection of images associated with this property.
         /// </summary>
-        public ICollection<Image> Images { get; set; } = new HashSet<Image>();
+        [NotMapped]
+        public List<IFormFile> Images { get; set; } = new List<IFormFile>();
 
+
+        public List<string> ImageUrls { get; set; } = new List<string>();
         /// <summary>
         /// Gets the collection of tags associated with this property.
         /// </summary>

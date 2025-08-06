@@ -1,6 +1,7 @@
 ﻿using AuctionGuard.Application.Authorization;
 using AuctionGuard.Application.IServices;
 using AuctionGuard.Infrastructure.Seeders;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -9,7 +10,7 @@ namespace AuctionGuard.API.Controllers.PayPalOnboardingController
 {
     [Route("api/paypal-onboarding")]
     [ApiController]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class PayPalOnboardingController : ControllerBase
     {
         private readonly IPayPalOnboardingService _onboardingService;

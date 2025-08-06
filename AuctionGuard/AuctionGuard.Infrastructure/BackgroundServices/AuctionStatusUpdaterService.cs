@@ -54,7 +54,8 @@ namespace AuctionGuard.Infrastructure.BackgroundServices
                 var notifier = scope.ServiceProvider.GetRequiredService<IAuctionNotifier>();
                 var auctionRepo = unitOfWork.GetRepository<Auction>();
                 var participantRepo = unitOfWork.GetRepository<AuctionParticipant>();
-                var now = DateTime.UtcNow;
+                var propertyRepo = unitOfWork.GetRepository<Property>();
+                var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Syria Standard Time"));
 
                 // 1. Find auctions that should become ACTIVE
                 var auctionsToStart = await auctionRepo.FindAllByPredicateAsync(
@@ -63,7 +64,12 @@ namespace AuctionGuard.Infrastructure.BackgroundServices
 
                 foreach (var auction in auctionsToStart)
                 {
+                    var property = await propertyRepo.GetByIdAsync(auction.PropertyId);
+                    property.PropertyStatus = PropertyStatus.UnderAuction;
                     auction.Status = AuctionStatus.Active;
+                    _logger.LogInformation("------------------------------------------------------Before update the property's status to under auction.......................................................................");
+                    propertyRepo.Update(property);
+                    _logger.LogInformation("------------------------------------------------------After update the property's status to under auction.......................................................................");
                     auctionRepo.Update(auction);
                     _logger.LogInformation($"Auction '{auction.AuctionId}' is starting.");
 
@@ -83,6 +89,16 @@ namespace AuctionGuard.Infrastructure.BackgroundServices
 
                 foreach (var auction in auctionsToEnd)
                 {
+                    var property = await propertyRepo.GetByIdAsync(auction.PropertyId);
+                    if (auction.WinnerId == null)
+                    {
+                        property.PropertyStatus = PropertyStatus.Available;
+                    }
+                    else
+                    {
+                        property.PropertyStatus = PropertyStatus.Sold; 
+                    }
+                    propertyRepo.Update(property);
                     auction.Status = AuctionStatus.Ended;
                     auctionRepo.Update(auction);
                     _logger.LogInformation($"Auction '{auction.AuctionId}' has finished.");

@@ -1,4 +1,5 @@
 ﻿using AuctionGuard.Application.DTOs.UserManagmentDTOs;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace AuctionGuard.Application.IServices
 {
     public interface IUserService
     {
-        Task<AuthenticationResult> RegisterAsync(RegisterDto registerDto);
+        Task<AuthenticationResult> RegisterAsync(RegisterDto registerDto, IFormFile identificationImageFile);
         Task<AuthenticationResult> LoginAsync(LoginDto loginDto);
         Task<UserDto?> GetUserByEmailAsync(string userEmail);
         Task LogoutAsync();

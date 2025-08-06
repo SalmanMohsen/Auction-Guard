@@ -15,6 +15,7 @@ namespace AuctionGuard.Application.DTOs.UserManagmentDTOs
         public string? Email { get; set; }
         public string? PhoneNumber { get; set; }
         public DateTime RegisterDate { get; set; }
+        public string IdentificationImageURL { get; set; }
         public IEnumerable<string> Roles { get; set; }
         public IEnumerable<string> Permissions { get; set; }
     }

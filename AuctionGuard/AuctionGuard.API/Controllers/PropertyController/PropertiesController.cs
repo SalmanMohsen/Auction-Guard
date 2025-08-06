@@ -5,12 +5,13 @@ using AuctionGuard.Infrastructure.Seeders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace AuctionGuard.API.Controllers.PropertyController
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] 
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class PropertiesController : ControllerBase
     {
         private readonly IPropertyService _propertyService;
@@ -26,7 +27,7 @@ namespace AuctionGuard.API.Controllers.PropertyController
         /// </summary>
         [HttpPost("Create-Property")]
         [HasPermission(Permissions.Properties.Create)]
-        public async Task<ActionResult<PropertyDto>> CreateProperty([FromBody] CreatePropertyDto createPropertyDto)
+        public async Task<ActionResult<PropertyDto>> CreateProperty([FromForm] CreatePropertyDto createPropertyDto)
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!Guid.TryParse(userIdString, out Guid userId))
@@ -41,11 +42,14 @@ namespace AuctionGuard.API.Controllers.PropertyController
         ///<summary>
         /// Gets the properties that the user has if he is a seller.
         /// </summary>
-        [HttpGet("{id:guid}/GetMyProperties")]
+        [HttpGet("GetMyProperties")]
         [HasPermission(Permissions.Properties.Create)]
-        public async Task<ActionResult<IEnumerable<PropertyDto>>> GetSellerProperties(Guid id)
+        public async Task<ActionResult<IEnumerable<PropertyDto>>> GetSellerProperties()
         {
-            var properties = await _propertyService.GetSellerPropertiesAsync(id);
+            var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid.TryParse(id, out Guid sellerId);
+           
+            var properties = await _propertyService.GetSellerPropertiesAsync(sellerId);
             if (properties == null)
             {
                 return NotFound();

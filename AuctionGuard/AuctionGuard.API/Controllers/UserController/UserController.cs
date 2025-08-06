@@ -3,6 +3,7 @@ using AuctionGuard.Application.IServices;
 using AuctionGuard.Application.Authorization;
 using AuctionGuard.Infrastructure.Seeders;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.ComponentModel.DataAnnotations;
@@ -14,7 +15,7 @@ namespace AuctionGuard.API.Controllers.UserController
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // Require authentication for all actions by default
+    [Authorize(AuthenticationSchemes=JwtBearerDefaults.AuthenticationScheme)] 
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -48,14 +49,14 @@ namespace AuctionGuard.API.Controllers.UserController
         /// </summary>
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
+        public async Task<IActionResult> Register([FromForm] RegisterDto registerDto, IFormFile identificationImageFile)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var result = await _userService.RegisterAsync(registerDto);
+            var result = await _userService.RegisterAsync(registerDto, identificationImageFile);
 
             if (!result.Succeeded)
             {

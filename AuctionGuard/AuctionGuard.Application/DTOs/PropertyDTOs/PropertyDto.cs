@@ -1,8 +1,10 @@
 ﻿using AuctionGuard.Domain.Entities;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace AuctionGuard.Application.DTOs.PropertyDTOs
@@ -18,11 +20,18 @@ namespace AuctionGuard.Application.DTOs.PropertyDTOs
         public string Address { get; set; }
         public decimal PriceInitial { get; set; }
         public Guid OwnerId { get; set; }
+
+        
         public PropertyStatus PropertyStatus { get; set; }
+
+        
         public ApprovalStatus ApprovalStatus { get; set; }
+
+        
         public PropertyType PropertyType { get; set; }
         public DateOnly ConstructedAt { get; set; }
         public DateOnly? LastRenew { get; set; }
         public List<string> ImageUrls { get; set; } = new List<string>();
+
     }
 }

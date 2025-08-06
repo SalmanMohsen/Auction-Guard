@@ -3,17 +3,19 @@ using AuctionGuard.Application.DTOs.AuctionDTOs;
 using AuctionGuard.Application.DTOs.AuctionParticipationDTOs;
 using AuctionGuard.Application.IServices;
 using AuctionGuard.Application.Services;
+using AuctionGuard.Domain.Entities;
 using AuctionGuard.Infrastructure.Seeders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace AuctionGuard.API.Controllers.AuctionController
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class AuctionsController : ControllerBase
     {
         private readonly IAuctionService _auctionService;
@@ -31,7 +33,7 @@ namespace AuctionGuard.API.Controllers.AuctionController
             _cache = cache;
             _configuration = configuration;
         }
-
+        
         [HttpPost]
         [HasPermission(Permissions.Auctions.Create)]
         public async Task<IActionResult> CreateAuction([FromBody] CreateAuctionDto dto)
@@ -56,9 +58,14 @@ namespace AuctionGuard.API.Controllers.AuctionController
 
         [HttpGet("My-Auctions")]
         [HasPermission(Permissions.Auctions.Create)]
-        public async Task<IActionResult> GetMyAuctions(Guid id)
+        public async Task<IActionResult> GetMyAuctions()
         {
-            var auctions = await _auctionService.GetSellerAuctionsAsync(id);
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userIdString, out Guid sellerId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+            var auctions = await _auctionService.GetSellerAuctionsAsync(sellerId);
             if(auctions == null)
             {
                 return NotFound();
@@ -68,9 +75,14 @@ namespace AuctionGuard.API.Controllers.AuctionController
 
         [HttpGet("The-Auctions-I-Won")]
         [HasPermission(Permissions.Auctions.Participate)]
-        public async Task<IActionResult> GetMyWonAuctions(Guid id)
+        public async Task<IActionResult> GetMyWonAuctions()
         {
-            var auctions = await _auctionService.GetMyWonAuctionsAsync(id);
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userIdString, out Guid UserId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+            var auctions = await _auctionService.GetMyWonAuctionsAsync(UserId);
             if(auctions == null)
             {
                 return NotFound();
@@ -118,6 +130,18 @@ namespace AuctionGuard.API.Controllers.AuctionController
             }
 
             return NoContent();
+        }
+        [HttpGet("{id:guid}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAuctionById(Guid Id)
+        {
+          
+            var auction = await _auctionService.GetAuctionByIdAsync(Id.ToString());
+            if(auction == null)
+            {
+                return NotFound();
+            }
+            return Ok(auction);
         }
 
         [HttpGet("ended")]

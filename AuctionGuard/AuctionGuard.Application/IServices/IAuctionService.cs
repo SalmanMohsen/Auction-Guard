@@ -16,7 +16,7 @@ namespace AuctionGuard.Application.IServices
         Task<IEnumerable<AuctionDto?>> GetEndedAuctionsAsync();
         Task<IEnumerable<AuctionDto>> GetSellerAuctionsAsync(Guid id);
         Task<IEnumerable<AuctionDto>> GetMyWonAuctionsAsync(Guid id);
-        Task<AuctionDto> GetAuctionByIdAsync(Guid id);
+        Task<AuctionDto> GetAuctionByIdAsync(string id);
         Task<(AuctionDto? auction, string? error)> UpdateAuctionAsync(Guid auctionId, UpdateAuctionDto dto, Guid userId);
         Task<(bool success, string? error)> AttemptRemakeAuctionAsync(Guid auctionId, Guid sellerId);
         Task<(bool success, string? error)> DeleteAuctionAsync(Guid auctionId, Guid userId,bool isAdmin);

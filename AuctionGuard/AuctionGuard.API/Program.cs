@@ -21,6 +21,7 @@ using AuctionGuard.API.Authorization;
 using AuctionGuard.API.Hubs;
 using AuctionGuard.API.Services;
 using AuctionGuard.Infrastructure.BackgroundServices;
+using System.Text.Json.Serialization;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,7 +46,7 @@ builder.Services.AddScoped<IPropertyService, PropertyService>();
 builder.Services.AddScoped<IAuctionService, AuctionService>();
 builder.Services.AddScoped<IOfferService, OfferService>();
 builder.Services.AddScoped<IBiddingService, BiddingService>();
-
+builder.Services.AddScoped<IImageService, ImageService>();
 // Add SignalR
 builder.Services.AddSignalR();
 
@@ -103,7 +104,7 @@ builder.Services.AddAuthentication(options =>
             // If the request is for our hub...
             var path = context.HttpContext.Request.Path;
             if (!string.IsNullOrEmpty(accessToken) &&
-                (path.StartsWithSegments("/bidding-hub")))
+                (path.StartsWithSegments("/api/bidding-hub")))
             {
                 // Read the token out of the query string
                 context.Token = accessToken;
@@ -214,7 +215,11 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    // This line configures the app to convert all enums to strings in JSON
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -273,7 +278,9 @@ app.UseHttpsRedirection();
 
 
 
-app.UseCors(aunctionGuardClientOrigin);
+app.UseCors("AuctionGuardClientOrigin");
+
+app.UseStaticFiles();
 
 app.UseAuthentication();
 
@@ -281,6 +288,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapHub<BiddingHub>("/bidding-hub");
+app.MapHub<BiddingHub>("/api/bidding-hub");
 
 app.Run();

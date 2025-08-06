@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// Import custom variables.
+@import "variables";
+
+// Global styles can be defined here.
+// For example, setting a default body font and background color.
+body {
+  font-family: $font-family-sans;
+  background-color: $neutral-light;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

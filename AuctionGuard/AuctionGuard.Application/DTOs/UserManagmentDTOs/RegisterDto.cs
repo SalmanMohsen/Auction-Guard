@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -27,9 +28,6 @@ namespace AuctionGuard.Application.DTOs.UserManagmentDTOs
 
         [Required]
         public string LastName { get; set; }
-
-        [Required]
-        public string IdentificationImageUrl { get; set; }
 
         [Required]
         public string Role { get; set; }

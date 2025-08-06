@@ -19,9 +19,11 @@ namespace AuctionGuard.Application.DTOs.AuctionDTOs
         public AuctionStatus Status { get; set; }
         public Guid PropertyId { get; set; }
         public string PropertyTitle { get; set; }
+        public string PropertyDescription { get; set; }
         public Guid CreatorId { get; set; }
         public Guid? WinnerId { get; set; }
         public string? CancellationReason { get; set; }
         public List<OfferDto> Offers { get; set; }
+        public List<string> PropertyImageUrls { get; set; } = new List<string>();
     }
 }

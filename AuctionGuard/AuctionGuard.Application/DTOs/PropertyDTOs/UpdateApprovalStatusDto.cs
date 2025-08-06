@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace AuctionGuard.Application.DTOs.PropertyDTOs
@@ -15,6 +16,7 @@ namespace AuctionGuard.Application.DTOs.PropertyDTOs
     {
         [Required]
         [RegularExpression("^(Approved|Rejected)$", ErrorMessage = "Approval status must be either 'Approved' or 'Rejected'.")]
+        
         public ApprovalStatus ApprovalStatus { get; set; }
     }
 }
