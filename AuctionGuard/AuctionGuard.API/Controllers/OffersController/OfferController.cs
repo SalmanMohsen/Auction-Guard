@@ -5,12 +5,13 @@ using AuctionGuard.Infrastructure.Seeders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace AuctionGuard.API.Controllers.OffersController
 {
     [Route("api/offers")]
     [ApiController]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class OffersController : ControllerBase
     {
         private readonly IOfferService _offerService;

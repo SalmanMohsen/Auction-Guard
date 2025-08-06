@@ -1,0 +1,25 @@
+// Color Palette
+// These colors can be used throughout your custom SASS files.
+$primary-color: #3b82f6; // Tailwind's blue-500
+$secondary-color: #6b7280; // Tailwind's gray-500
+$danger-color: #ef4444; // Tailwind's red-500
+$success-color: #22c55e; // Tailwind's green-500
+$warning-color: #f59e0b; // Tailwind's amber-500
+
+// Neutral Colors
+$neutral-light: #f9fafb; // gray-50
+$neutral-dark: #1f2937; // gray-800
+$white: #ffffff;
+$black: #000000;
+
+// Typography
+// Defines the font stacks for the application.
+$font-family-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+$font-family-mono: 'Menlo', 'Monaco', 'Courier New', monospace;
+
+// Breakpoints
+// Matches Tailwind's default breakpoints for consistency in media queries.
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;

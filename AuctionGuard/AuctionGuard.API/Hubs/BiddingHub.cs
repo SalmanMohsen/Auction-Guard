@@ -1,13 +1,14 @@
 ﻿using AuctionGuard.Application.IServices;
 using AuctionGuard.Domain.Entities;
 using AuctionGuard.Domain.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System.Text.RegularExpressions;
 
 namespace AuctionGuard.API.Hubs
 {
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public sealed class BiddingHub : Hub
     {
         private readonly IBiddingService _biddingService;

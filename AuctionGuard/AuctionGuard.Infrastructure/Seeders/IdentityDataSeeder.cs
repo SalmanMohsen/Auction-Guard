@@ -1,12 +1,9 @@
 ﻿using AuctionGuard.Domain.Entities;
-using AuctionGuard.Infrastructure.Contexts;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -45,7 +42,6 @@ namespace AuctionGuard.Infrastructure.Seeders
             public const string Delete = "Permissions.Auctions.Delete";
             public const string Participate = "Permissions.Auctions.Participate";
             public const string CreateOffer = "Permissions.Auctions.CreateOffer";
-            public const string Cancel = "Permissions.Auctions.Cancel";
         }
 
         public static class Bids
@@ -94,10 +90,7 @@ namespace AuctionGuard.Infrastructure.Seeders
         /// <param name="serviceProvider">The application's service provider.</param>
         public static async Task SeedRolesAndPermissionsAsync(IServiceProvider serviceProvider)
         {
-            var context = serviceProvider.GetRequiredService<AuctionGuardIdentityDbContext>();
             var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
-
-            await SeedPermissionsAsync(context);
 
             // --- 1. Seed Roles ---
             string[] roleNames = { "Admin", "Seller", "Bidder" };
@@ -110,19 +103,41 @@ namespace AuctionGuard.Infrastructure.Seeders
             }
 
             // --- 2. Define Permissions for Each Role ---
-            await context.SaveChangesAsync();
+            var adminRole = await roleManager.FindByNameAsync("Admin");
+            var sellerRole = await roleManager.FindByNameAsync("Seller");
+            var bidderRole = await roleManager.FindByNameAsync("Bidder");
 
-            // 3. Define Permissions for Each Role and Establish Relationships
-            await AddPermissionsToRoleAsync(context, "Admin", typeof(Permissions.Users).GetFields().Select(f => f.GetValue(null).ToString()).ToList());
-            await AddPermissionsToRoleAsync(context, "Admin", typeof(Permissions.Properties).GetFields().Where(f => f.Name != "Create").Select(f => f.GetValue(null).ToString()).ToList());
-            await AddPermissionsToRoleAsync(context, "Admin", typeof(Permissions.Auctions).GetFields().Select(f => f.GetValue(null).ToString()).ToList());
-            await AddPermissionsToRoleAsync(context, "Admin", typeof(Permissions.Bids).GetFields().Select(f => f.GetValue(null).ToString()).ToList());
-            await AddPermissionsToRoleAsync(context, "Admin", typeof(Permissions.Reviews).GetFields().Select(f => f.GetValue(null).ToString()).ToList());
-            await AddPermissionsToRoleAsync(context, "Admin", typeof(Permissions.Favorites).GetFields().Where(f => f.Name != "Add" && f.Name != "Remove").Select(f => f.GetValue(null).ToString()).ToList());
-            await AddPermissionsToRoleAsync(context, "Admin", typeof(Permissions.Payments).GetFields().Where(f => f.Name != "Process").Select(f => f.GetValue(null).ToString()).ToList());
+            // Admin Permissions (Full Control)
+            await AddPermissionsToRoleAsync(roleManager, adminRole, new List<string>
+            {
+                Permissions.Users.View,
+                Permissions.Users.Create,
+                Permissions.Users.Edit,
+                Permissions.Users.Delete,
+                Permissions.Users.Blacklist,
+                Permissions.Properties.View,
+                Permissions.Properties.Create,
+                Permissions.Properties.Edit,
+                Permissions.Properties.Delete,
+                Permissions.Properties.Approve,
+                Permissions.Auctions.View,
+                Permissions.Auctions.Create,
+                Permissions.Auctions.Edit,
+                Permissions.Auctions.Delete,
+                Permissions.Auctions.Participate,
+                Permissions.Bids.View,
+                Permissions.Bids.Place,
+                Permissions.Bids.Withdraw,
+                Permissions.Reviews.View,
+                Permissions.Reviews.Create,
+                Permissions.Reviews.Manage,
+                Permissions.Reviews.Report,
+                Permissions.Favorites.View,
+                Permissions.Payments.View,
+            });
 
             // Seller Permissions
-            await AddPermissionsToRoleAsync(context, "Seller", new List<string>
+            await AddPermissionsToRoleAsync(roleManager, sellerRole, new List<string>
             {
                 Permissions.Properties.View,
                 Permissions.Properties.Create,
@@ -133,7 +148,6 @@ namespace AuctionGuard.Infrastructure.Seeders
                 Permissions.Auctions.Edit,
                 Permissions.Auctions.Delete,
                 Permissions.Auctions.CreateOffer,
-                Permissions.Auctions.Cancel,
                 Permissions.Bids.View,
                 Permissions.Reviews.View,
                 Permissions.Auctions.Participate,
@@ -146,7 +160,7 @@ namespace AuctionGuard.Infrastructure.Seeders
             });
 
             // Bidder Permissions
-            await AddPermissionsToRoleAsync(context, "Bidder", new List<string>
+            await AddPermissionsToRoleAsync(roleManager, bidderRole, new List<string>
             {
                 Permissions.Properties.View,
                 Permissions.Auctions.View,
@@ -167,52 +181,19 @@ namespace AuctionGuard.Infrastructure.Seeders
         }
 
         /// <summary>
-        /// Reads all string constants from the static 'Permissions' class and ensures
-        /// they exist in the database as Permission entities.
+        /// A helper method to add a list of permissions to a role, avoiding duplicates.
         /// </summary>
-        private static async Task SeedPermissionsAsync(AuctionGuardIdentityDbContext context)
+        private static async Task AddPermissionsToRoleAsync(RoleManager<Role> roleManager, Role role, IEnumerable<string> permissions)
         {
-            var existingPermissionNames = await context.Permissions.Select(p => p.PermissionName).ToListAsync();
-
-            var allPermissionConstants = typeof(Permissions)
-                .GetNestedTypes()
-                .SelectMany(t => t.GetFields(BindingFlags.Public | BindingFlags.Static))
-                .Where(f => f.IsLiteral && f.FieldType == typeof(string))
-                .Select(f => (string)f.GetValue(null))
-                .ToList();
-
-            foreach (var permissionName in allPermissionConstants)
-            {
-                if (!existingPermissionNames.Contains(permissionName))
-                {
-                    await context.Permissions.AddAsync(new Permission { PermissionName = permissionName });
-                }
-            }
-            await context.SaveChangesAsync();
-        }
-
-        /// <summary>
-        /// A helper method to add a list of permissions to a role using the entity relationships.
-        /// </summary>
-        private static async Task AddPermissionsToRoleAsync(AuctionGuardIdentityDbContext context, string roleName, IEnumerable<string> permissionNames)
-        {
-            var role = await context.Roles
-                                    .Include(r => r.Permissions)
-                                    .FirstOrDefaultAsync(r => r.Name == roleName);
             if (role == null) return;
-
-            var permissionsToAssign = await context.Permissions
-                                                   .Where(p => permissionNames.Contains(p.PermissionName))
-                                                   .ToListAsync();
-
-            foreach (var permission in permissionsToAssign)
+            var currentClaims = await roleManager.GetClaimsAsync(role);
+            foreach (var permission in permissions)
             {
-                if (!role.Permissions.Any(p => p.PermissionId == permission.PermissionId))
+                if (!currentClaims.Any(c => c.Type == "Permission" && c.Value == permission))
                 {
-                    role.Permissions.Add(permission);
+                    await roleManager.AddClaimAsync(role, new Claim("Permission", permission));
                 }
             }
-            await context.SaveChangesAsync();
         }
 
 

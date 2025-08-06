@@ -52,10 +52,7 @@ namespace AuctionGuard.Infrastructure.Contexts
         /// </summary>
         public DbSet<FavoriteProperty> favoriteProperties { get; set; }
 
-        /// <summary>
-        /// Gets or sets the DbSet for the <see cref="Image"/> entities.
-        /// </summary>
-        public DbSet<Image> images { get; set; }
+
 
         /// <summary> 
         /// Gets or sets the DbSet for the <see cref="Invoice"/> entities.
@@ -127,17 +124,13 @@ namespace AuctionGuard.Infrastructure.Contexts
                 .HasForeignKey(a => a.PropertyId)
                 .OnDelete(DeleteBehavior.Restrict); // Don't delete a property if it has auctions.
 
-            // --- Property Relationships ---
-            builder.Entity<Property>()
-                .HasMany(p => p.Images)
-                .WithOne(i => i.Property)
-                .HasForeignKey(i => i.PropertyId)
-                .OnDelete(DeleteBehavior.Cascade); // If a property is deleted, its images are also deleted.
+
 
             builder.Entity<Property>()
                 .HasMany(p => p.Tags)
                 .WithMany(t => t.Properties)
-                .UsingEntity(j => j.ToTable("PropertyTags")); // M-N join table for Properties and Tags
+                .UsingEntity(j => j.ToTable("PropertyTags"));
+                
 
             builder.Entity<Property>()
                 .HasMany(p => p.FavoritedByUsers)

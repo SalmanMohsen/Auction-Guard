@@ -38,7 +38,7 @@ namespace AuctionGuard.Application.Services
             {
                 return (null, "This property is already in an active or scheduled auction.");
             }
-
+            TimeZoneInfo localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Syria Standard Time");
             var auction = new Auction
             {
                 PropertyId = dto.PropertyId,
@@ -47,10 +47,10 @@ namespace AuctionGuard.Application.Services
                 EndTime = dto.EndTime,
                 MinBidIncrement = dto.MinBidIncrement,
                 GuaranteeDeposit = dto.GuaranteeDeposit,
-                CreatedOn = DateTime.UtcNow,
-                Status = dto.StartTime <= DateTime.UtcNow ? AuctionStatus.Active : AuctionStatus.Scheduled
+                CreatedOn = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, localTimeZone),
+                Status = dto.StartTime <= TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, localTimeZone) ? AuctionStatus.Active : AuctionStatus.Scheduled
             };
-
+            property.PropertyStatus = PropertyStatus.UnderAuction;
             if (dto.Offers != null)
             {
                 foreach (var offerDto in dto.Offers)
@@ -62,7 +62,7 @@ namespace AuctionGuard.Application.Services
                     });
                 }
             }
-
+            _propertyRepo.Update(property);
             await _auctionRepo.AddAsync(auction);
             await _unitOfWork.CommitAsync();
 
@@ -133,10 +133,10 @@ namespace AuctionGuard.Application.Services
             );
             return await MapToAuctionDtoList(auctions);
         }
-        public async Task<AuctionDto?> GetAuctionByIdAsync(Guid id)
+        public async Task<AuctionDto?> GetAuctionByIdAsync(string id)
         {
             var auction = await _auctionRepo.GetFirstOrDefaultAsync(
-                predicate: a => a.AuctionId == id,
+                predicate: a => a.AuctionId.ToString() == id,
                 include: q => q.Include(a => a.Property)
                                .Include(a => a.Offers)
                                .Include(a => a.Bids)
@@ -167,13 +167,15 @@ namespace AuctionGuard.Application.Services
         public async Task<(bool success, string? error)> DeleteAuctionAsync(Guid auctionId, Guid userId, bool isAdmin)
         {
             var auction = await _auctionRepo.GetByIdAsync(auctionId);
-
-            if (auction == null) return (true, null); // Idempotent
+            var property = await _propertyRepo.GetByIdAsync(auction.PropertyId);
+            if (auction == null) return (true, null); 
             if (auction.Status != AuctionStatus.Scheduled) return (false, "Only scheduled auctions can be deleted.");
             if(auction.CreatorId != userId && !isAdmin)
             {
                 return (false, "You are not allowed to delete the auction.");
             }
+            property.PropertyStatus = PropertyStatus.Available;
+            _propertyRepo.Update(property);
             _auctionRepo.Remove(auction);
             await _unitOfWork.CommitAsync();
             return (true, null);
@@ -200,16 +202,7 @@ namespace AuctionGuard.Application.Services
         }
 
 
-        // Helper to map a list of auctions
-        private async Task<List<AuctionDto>> MapToAuctionDtoList(IEnumerable<Auction> auctions)
-        {
-            var dtoList = new List<AuctionDto>();
-            foreach (var auction in auctions)
-            {
-                dtoList.Add(await MapToAuctionDto(auction));
-            }
-            return dtoList;
-        }
+        
 
 
         public async Task<(bool success, string? error)> CancelAuctionAsync(Guid auctionId, Guid userId, bool isAdmin, string reason)
@@ -246,14 +239,23 @@ namespace AuctionGuard.Application.Services
         }
 
 
+        // Helper to map a list of auctions
+        private async Task<List<AuctionDto>> MapToAuctionDtoList(IEnumerable<Auction> auctions)
+        {
+            var dtoList = new List<AuctionDto>();
+            foreach (var auction in auctions)
+            {
+                dtoList.Add(await MapToAuctionDto(auction));
+            }
+            return dtoList;
+        }
+
         // Central mapping logic
         private async Task<AuctionDto> MapToAuctionDto(Auction auction)
         {
-            // Property is now guaranteed to be loaded by the Include statement
+            // The Property is loaded via the .Include() in the calling methods.
             var property = auction.Property;
 
-            // FIX: Manually load offers if they weren't included in the initial query.
-            // This makes the mapping method more robust.
             if (auction.Offers == null || !auction.Offers.Any())
             {
                 var offerRepo = _unitOfWork.GetRepository<Offer>();
@@ -271,10 +273,12 @@ namespace AuctionGuard.Application.Services
                 Status = auction.Status,
                 PropertyId = auction.PropertyId,
                 PropertyTitle = property?.Title,
+                PropertyDescription = property?.Description, // Map the description
                 CreatorId = auction.CreatorId,
                 WinnerId = auction.WinnerId,
                 CancellationReason = auction.CancellationReason,
-                Offers = auction.Offers.Select(o => new OfferDto { OfferId = o.OfferId, Description = o.Description, TriggerPrice = o.TriggerPrice }).ToList()
+                Offers = auction.Offers.Select(o => new OfferDto { OfferId = o.OfferId, Description = o.Description, TriggerPrice = o.TriggerPrice }).ToList(),
+                PropertyImageUrls = property?.ImageUrls ?? new List<string>() // Map the image URLs
             };
         }
     }

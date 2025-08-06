@@ -42,6 +42,7 @@ namespace AuctionGuard.Application.Services
             var auction = await auctionRepo.GetFirstOrDefaultAsync(
                 predicate: a => a.AuctionId == auctionId,
                 include: q => q.Include(a => a.Bids)
+                               .Include(a => a.Property) 
             );
 
             if (auction == null)

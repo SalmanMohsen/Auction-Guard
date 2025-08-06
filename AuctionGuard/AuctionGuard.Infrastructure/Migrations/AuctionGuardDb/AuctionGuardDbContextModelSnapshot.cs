@@ -180,36 +180,6 @@ namespace AuctionGuard.Infrastructure.Migrations.AuctionGuardDb
                     b.ToTable("favoriteProperties");
                 });
 
-            modelBuilder.Entity("AuctionGuard.Domain.Entities.Image", b =>
-                {
-                    b.Property<Guid>("ImageId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Category")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasMaxLength(2048)
-                        .HasColumnType("nvarchar(2048)");
-
-                    b.Property<bool>("IsPrimary")
-                        .HasColumnType("bit");
-
-                    b.Property<Guid>("PropertyId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<long?>("Size")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("ImageId");
-
-                    b.HasIndex("PropertyId");
-
-                    b.ToTable("images");
-                });
-
             modelBuilder.Entity("AuctionGuard.Domain.Entities.Invoice", b =>
                 {
                     b.Property<Guid>("InvoiceId")
@@ -389,6 +359,10 @@ namespace AuctionGuard.Infrastructure.Migrations.AuctionGuardDb
                     b.Property<decimal?>("EndedPrice")
                         .HasColumnType("decimal(18, 2)");
 
+                    b.Property<string>("ImageUrls")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateOnly?>("LastRenew")
                         .HasColumnType("date");
 
@@ -539,17 +513,6 @@ namespace AuctionGuard.Infrastructure.Migrations.AuctionGuardDb
                     b.Navigation("Property");
                 });
 
-            modelBuilder.Entity("AuctionGuard.Domain.Entities.Image", b =>
-                {
-                    b.HasOne("AuctionGuard.Domain.Entities.Property", "Property")
-                        .WithMany("Images")
-                        .HasForeignKey("PropertyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Property");
-                });
-
             modelBuilder.Entity("AuctionGuard.Domain.Entities.Invoice", b =>
                 {
                     b.HasOne("AuctionGuard.Domain.Entities.Auction", "Auction")
@@ -657,8 +620,6 @@ namespace AuctionGuard.Infrastructure.Migrations.AuctionGuardDb
                     b.Navigation("Auctions");
 
                     b.Navigation("FavoritedByUsers");
-
-                    b.Navigation("Images");
 
                     b.Navigation("Reviews");
                 });

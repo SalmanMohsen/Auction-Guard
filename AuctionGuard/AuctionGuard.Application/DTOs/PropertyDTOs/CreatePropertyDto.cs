@@ -1,10 +1,12 @@
 ﻿using AuctionGuard.Domain.Entities;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace AuctionGuard.Application.DTOs.PropertyDTOs
@@ -34,13 +36,10 @@ namespace AuctionGuard.Application.DTOs.PropertyDTOs
         public DateOnly LastRenew {  get; set; }
 
         [Required]
+        
         public PropertyType PropertyType { get; set; }
 
-
-        /// <summary>
-        /// A list of URLs for the property images.
-        /// Image upload should be handled separately to get the URLs.
-        /// </summary>
-        public List<string> ImageUrls { get; set; } = new List<string>();
+        [MaxLength(25, ErrorMessage = "You can upload a maximum of 25 images.")]
+        public List<IFormFile> Images { get; set; } = new List<IFormFile>();
     }
 }

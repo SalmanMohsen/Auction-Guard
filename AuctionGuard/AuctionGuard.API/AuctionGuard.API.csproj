@@ -23,4 +23,8 @@
     <ProjectReference Include="..\AuctionGuard.Infrastructure\AuctionGuard.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
 </Project>

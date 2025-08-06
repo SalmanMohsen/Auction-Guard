@@ -15,6 +15,8 @@ using Microsoft.IdentityModel.Tokens;
 using AuctionGuard.Domain.Interfaces;
 using System.Web;
 using Microsoft.Extensions.Logging;
+using AuctionGuard.Application.DTOs.PropertyDTOs;
+using Microsoft.AspNetCore.Http;
 
 namespace AuctionGuard.Application.Services
 {
@@ -23,6 +25,7 @@ namespace AuctionGuard.Application.Services
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly RoleManager<Role> _roleManager;
+        private readonly IImageService _imageService;
         private readonly IConfiguration _configuration;
         private readonly IEmailSender _emailSender;
         private readonly ILogger<UserService> _logger;
@@ -33,12 +36,14 @@ namespace AuctionGuard.Application.Services
             RoleManager<Role> roleManager,
             IConfiguration configuration,
             IEmailSender emailSender,
+            IImageService imageService,
             ILogger<UserService> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _configuration = configuration;
+            _imageService = imageService;
             _emailSender = emailSender;
             _logger = logger;
         }
@@ -70,6 +75,7 @@ namespace AuctionGuard.Application.Services
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 RegisterDate = user.RegisterDate,
+                IdentificationImageURL = user.IdentificationImageUrl,
                 Roles = roles,
                 Permissions = permissions.Distinct()
             };
@@ -102,6 +108,7 @@ namespace AuctionGuard.Application.Services
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
                     RegisterDate = user.RegisterDate,
+                    IdentificationImageURL = user.IdentificationImageUrl,
                     Roles = roles,
                     Permissions = permissions.Distinct()
                 });
@@ -109,8 +116,10 @@ namespace AuctionGuard.Application.Services
             return userDtos;
         }
 
-        public async Task<AuthenticationResult> RegisterAsync(RegisterDto registerDto)
+        public async Task<AuthenticationResult> RegisterAsync(RegisterDto registerDto, IFormFile identificationImageFile)
         {
+            string idImageUrl = await _imageService.SaveImageAsync(identificationImageFile);
+            TimeZoneInfo localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Syria Standard Time");
             var user = new User
             {
                 UserName = registerDto.Email,
@@ -119,8 +128,8 @@ namespace AuctionGuard.Application.Services
                 FirstName = registerDto.FirstName,
                 MiddleName = registerDto.MiddleName,
                 LastName = registerDto.LastName,
-                IdentificationImageUrl = registerDto.IdentificationImageUrl,
-                RegisterDate = DateTime.UtcNow
+                IdentificationImageUrl = idImageUrl,
+                RegisterDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, localTimeZone)
             };
             var roleExist = await _roleManager.RoleExistsAsync(registerDto.Role);
             if (!roleExist)
@@ -201,6 +210,7 @@ namespace AuctionGuard.Application.Services
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 RegisterDate = user.RegisterDate,
+                IdentificationImageURL = user.IdentificationImageUrl,
                 Roles = roles,
                 Permissions = permissions.Distinct()
             };
@@ -304,10 +314,10 @@ namespace AuctionGuard.Application.Services
 
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim("id", user.Id.ToString())
+               // new Claim("id", user.Id.ToString())
             };
 
             var userRoles = await _userManager.GetRolesAsync(user);
