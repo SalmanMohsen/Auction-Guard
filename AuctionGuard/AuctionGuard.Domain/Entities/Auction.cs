@@ -51,7 +51,7 @@ namespace AuctionGuard.Domain.Entities
         public decimal MinBidIncrement { get; set; }
 
         /// <summary>
-        /// Gets or sets the current status of the auction (e.g., 'Scheduled', 'Active', 'Ended').
+        /// Gets or sets the current status of the auction (e.g., 'Scheduled', 'Active', 'Ended, Cancelled').
         /// </summary>
         [Required]
         public AuctionStatus Status { get; set; }
@@ -62,6 +62,10 @@ namespace AuctionGuard.Domain.Entities
         [Required]
         public DateTime CreatedOn { get; set; }
 
+        /// <summary>
+        /// Gets or sets the cancellation reason for tha auction in case it got cancelled.
+        /// </summary>
+        public string? CancellationReason { get; set; }
         /// <summary>
         /// Gets or sets an optional deposit amount required to participate.
         /// </summary>

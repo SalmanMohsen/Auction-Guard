@@ -157,11 +157,11 @@ namespace AuctionGuard.Application.Services
             return result;
         }
 
-        public async Task<PropertyDto?> UpdatePropertyAsync(Guid id, UpdatePropertyDto updatePropertyDto, Guid userId)
+        public async Task<PropertyDto?> UpdatePropertyAsync(Guid id, UpdatePropertyDto updatePropertyDto)
         {
             var property = await _propertyrepo.GetByIdAsync(id);
             
-            if (property == null || property.OwnerId != userId)
+            if (property == null)
             {
                 return null;
             }
@@ -205,16 +205,11 @@ namespace AuctionGuard.Application.Services
             return true;
         }
 
-        public async Task<bool> DeletePropertyAsync(Guid id, Guid userId, bool isAdmin)
+        public async Task<bool> DeletePropertyAsync(Guid id)
         {
             var property = await _propertyrepo.GetByIdAsync(id);
 
             if (property == null)
-            {
-                return false;
-            }
-
-            if (!isAdmin && property.OwnerId != userId)
             {
                 return false;
             }

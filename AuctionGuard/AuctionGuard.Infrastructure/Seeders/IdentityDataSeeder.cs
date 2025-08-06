@@ -45,6 +45,7 @@ namespace AuctionGuard.Infrastructure.Seeders
             public const string Delete = "Permissions.Auctions.Delete";
             public const string Participate = "Permissions.Auctions.Participate";
             public const string CreateOffer = "Permissions.Auctions.CreateOffer";
+            public const string Cancel = "Permissions.Auctions.Cancel";
         }
 
         public static class Bids
@@ -132,6 +133,7 @@ namespace AuctionGuard.Infrastructure.Seeders
                 Permissions.Auctions.Edit,
                 Permissions.Auctions.Delete,
                 Permissions.Auctions.CreateOffer,
+                Permissions.Auctions.Cancel,
                 Permissions.Bids.View,
                 Permissions.Reviews.View,
                 Permissions.Auctions.Participate,

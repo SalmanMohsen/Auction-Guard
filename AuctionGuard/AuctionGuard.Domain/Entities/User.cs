@@ -48,6 +48,13 @@ namespace AuctionGuard.Domain.Entities
         /// </summary>
         [Required]
         public DateTime RegisterDate { get; set; }
+
+        /// <summary>
+        /// Stores the seller's unique PayPal merchant ID after successful onboarding.
+        /// This is required to make API calls (like creating invoices) on their behalf.
+        /// It is nullable because not all users are onboarded sellers.
+        /// </summary>
+        public string? PayPalMerchantId { get; set; }
         #endregion
 
     }

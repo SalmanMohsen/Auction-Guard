@@ -72,7 +72,7 @@ namespace AuctionGuard.API.Controllers.UserController
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            // Check if the user is already authenticated in the current context
+            
             if (User.Identity.IsAuthenticated)
             {
                 return BadRequest(new { Message = "User is already logged in." });
@@ -89,9 +89,8 @@ namespace AuctionGuard.API.Controllers.UserController
             {
                 return Unauthorized(new { Errors = result.Errors });
             }
-            var user = await _userService.GetUserByEmailAsync(loginDto.Login);
             
-            return Ok(new { Token = result.Token ,user});
+            return Ok(new { Token = result.Token });
         }
 
         

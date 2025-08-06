@@ -10,7 +10,7 @@ namespace AuctionGuard.Application.DTOs.UserManagmentDTOs
     public class LoginDto
     {
         [Required]
-        public string Login { get; set; }
+        public string Email { get; set; }
 
         public bool RememberMe { get; set; } = false;
 

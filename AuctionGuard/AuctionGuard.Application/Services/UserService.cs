@@ -14,6 +14,7 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using AuctionGuard.Domain.Interfaces;
 using System.Web;
+using Microsoft.Extensions.Logging;
 
 namespace AuctionGuard.Application.Services
 {
@@ -24,19 +25,22 @@ namespace AuctionGuard.Application.Services
         private readonly RoleManager<Role> _roleManager;
         private readonly IConfiguration _configuration;
         private readonly IEmailSender _emailSender;
+        private readonly ILogger<UserService> _logger;
 
         public UserService(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             RoleManager<Role> roleManager,
             IConfiguration configuration,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            ILogger<UserService> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _configuration = configuration;
             _emailSender = emailSender;
+            _logger = logger;
         }
 
         public async Task<UserDto?> GetUserByEmailAsync(string email)
@@ -146,8 +150,9 @@ namespace AuctionGuard.Application.Services
 
         public async Task<AuthenticationResult> LoginAsync(LoginDto loginDto)
         {
-            var user = await _userManager.FindByEmailAsync(loginDto.Login)
-                       ?? await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == loginDto.Login);
+            _logger.LogInformation("------------------------------------- Starting searching for user's email ------------------------------------------", loginDto.Email, loginDto.Password);
+            var user = await _userManager.FindByEmailAsync(loginDto.Email)
+                       ?? await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == loginDto.Email);
 
             if (user == null)
             {

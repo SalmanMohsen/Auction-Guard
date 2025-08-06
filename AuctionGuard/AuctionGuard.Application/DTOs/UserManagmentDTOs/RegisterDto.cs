@@ -31,10 +31,6 @@ namespace AuctionGuard.Application.DTOs.UserManagmentDTOs
         [Required]
         public string IdentificationImageUrl { get; set; }
 
-        /// <summary>
-        /// The role the user is registering for (e.g., "Seller" or "Bidder").
-        /// This value comes from the user's selection in the frontend.
-        /// </summary>
         [Required]
         public string Role { get; set; }
     }

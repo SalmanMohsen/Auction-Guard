@@ -1,6 +1,7 @@
 ﻿using AuctionGuard.Domain.Interfaces;
 using AuctionGuard.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +29,7 @@ namespace AuctionGuard.Infrastructure.Repositories
 
         public async Task<T?> FindAsync(Expression<Func<T, bool>> predicate) 
         {
-            return await _dbSet.FindAsync(predicate); 
+            return await _dbSet.FirstOrDefaultAsync(predicate); 
         }
 
         public async Task<IEnumerable<T>> GetAllAsync()
@@ -36,15 +37,34 @@ namespace AuctionGuard.Infrastructure.Repositories
             return await _dbSet.ToListAsync();
         }
 
-        public async Task<T?> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
+        public async Task<IEnumerable<T>> FindAllByPredicateAsync(
+            Expression<Func<T, bool>> predicate,
+            Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null)
         {
-            return await _dbSet.FirstOrDefaultAsync(predicate);
+            IQueryable<T> query = _dbSet;
+
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            return await query.Where(predicate).ToListAsync();
         }
-        public async Task<IEnumerable<T?>> FindAllByPredicateAsync(Expression<Func<T, bool>> predicate)
+
+        public async Task<T?> GetFirstOrDefaultAsync(
+            Expression<Func<T, bool>> predicate,
+            Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null)
         {
-           return await _dbSet.Where(predicate).ToListAsync();
+            IQueryable<T> query = _dbSet;
+
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            return await query.FirstOrDefaultAsync(predicate);
         }
-        
+
 
         public async Task<T> AddAsync(T entity)
         {

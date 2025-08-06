@@ -18,9 +18,17 @@ using AuctionGuard.Application.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using AuctionGuard.API.Authorization;
+using AuctionGuard.API.Hubs;
+using AuctionGuard.API.Services;
+using AuctionGuard.Infrastructure.BackgroundServices;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Services.AddLogging();
 
 // Add services to the container.
 
@@ -31,12 +39,38 @@ builder.Services.AddDbContext<AuctionGuardIdentityDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("Identity")));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-//builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(IdentityGenericRepository<>));
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(AppGenericRepository<>));
-
-
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPropertyService, PropertyService>();
+builder.Services.AddScoped<IAuctionService, AuctionService>();
+builder.Services.AddScoped<IOfferService, OfferService>();
+builder.Services.AddScoped<IBiddingService, BiddingService>();
+
+// Add SignalR
+builder.Services.AddSignalR();
+
+// Bind PayPal settings from appsettings.json
+builder.Services.Configure<PayPalSettings>(builder.Configuration.GetSection("PayPal"));
+
+builder.Services.AddScoped<IAuctionParticipationService, AuctionParticipationService>();
+
+builder.Services.AddHostedService<AuctionStatusUpdaterService>();
+builder.Services.AddSingleton<IAuctionNotifier, SignalRNotifier>();
+builder.Services.AddMemoryCache();
+
+builder.Services.AddScoped<IPayPalOnboardingService, PayPalOnboardingService>();
+builder.Services.AddScoped<IPaymentGatewayService, PayPalService>();
+
+builder.Services.AddHttpClient<IPayPalClientService, PayPalClientService>((serviceProvider, client) =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var payPalMode = configuration["PayPal:Platform:Mode"]; 
+    var baseUrl = payPalMode == "Sandbox"
+        ? "https://api-m.sandbox.paypal.com"
+        : "https://api-m.paypal.com";
+    client.BaseAddress = new Uri(baseUrl);
+});
+
 builder.Services.AddHttpClient();
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
@@ -59,9 +93,23 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
-
+   
     options.Events = new JwtBearerEvents
     {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+
+            // If the request is for our hub...
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) &&
+                (path.StartsWithSegments("/bidding-hub")))
+            {
+                // Read the token out of the query string
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        },
         OnChallenge = context =>
         {
             context.HandleResponse();
@@ -223,6 +271,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+
+
 app.UseCors(aunctionGuardClientOrigin);
 
 app.UseAuthentication();
@@ -230,5 +280,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<BiddingHub>("/bidding-hub");
 
 app.Run();
